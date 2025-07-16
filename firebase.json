@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"xp-safeconnect","appId":"1:890256441645:android:d7b9de3875862cf9a393a4","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"xp-safeconnect","configurations":{"android":"1:890256441645:android:d7b9de3875862cf9a393a4","ios":"1:890256441645:ios:76b6e704b29665f2a393a4"}}}}}}

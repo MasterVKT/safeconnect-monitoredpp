@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "890256441645",
+    "project_id": "xp-safeconnect",
+    "storage_bucket": "xp-safeconnect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890256441645:android:f16042fa75606d1ba393a4",
+        "android_client_info": {
+          "package_name": "com.xpsafeconnect.monitor_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "890256441645-goqfvsbhopeho27aamioub4fumhiagse.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xpsafeconnect.monitor_app",
+            "certificate_hash": "7bb3bbec6865319e39e448320f3779db8d88bba3"
+          }
+        },
+        {
+          "client_id": "890256441645-qtb80bcmd9g0rscvds4posghrv0n8lal.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbMpBxPq8eWuLPmZiocejPOCO5yoyL2k0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "890256441645-qtb80bcmd9g0rscvds4posghrv0n8lal.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "890256441645-b75840eir8c4v1mfvkem1spcqmq4pg9b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.xpsafeconnect.monitorApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890256441645:android:d7b9de3875862cf9a393a4",
+        "android_client_info": {
+          "package_name": "com.xpsafeconnect.monitored_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "890256441645-ckjbkhbetj3e4l0bc0egcfpjash6v5jv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.xpsafeconnect.monitored_app",
+            "certificate_hash": "7bb3bbec6865319e39e448320f3779db8d88bba3"
+          }
+        },
+        {
+          "client_id": "890256441645-qtb80bcmd9g0rscvds4posghrv0n8lal.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbMpBxPq8eWuLPmZiocejPOCO5yoyL2k0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "890256441645-qtb80bcmd9g0rscvds4posghrv0n8lal.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "890256441645-b75840eir8c4v1mfvkem1spcqmq4pg9b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.xpsafeconnect.monitorApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

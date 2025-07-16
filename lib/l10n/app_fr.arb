@@ -1,0 +1,192 @@
+{
+  "appName": "XP SafeConnect",
+  
+  "welcomeToSafeConnect": "Bienvenue sur XP SafeConnect",
+  "pairingScreenDescription": "Veuillez saisir le code de jumelage fourni par l'appareil de surveillance pour démarrer le processus de configuration.",
+  "pairingCode": "Code de jumelage",
+  "enterPairingCode": "Entrez le code à 6 chiffres",
+  "pairingCodeRequired": "Veuillez entrer le code de jumelage",
+  "continueText": "Continuer",
+  "cancel": "Annuler",
+  "exitSetup": "Quitter la configuration",
+  "exitSetupConfirmation": "Êtes-vous sûr de vouloir quitter la configuration ? Cela fermera l'application.",
+  "exit": "Quitter",
+  
+  "requiredPermissions": "Permissions requises",
+  "permissionTitle": "{title}",
+  "@permissionTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "permissionDescription": "{description}",
+  "@permissionDescription": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "locationPermission": "Localisation",
+  "locationPermissionDescription": "Permet de suivre la position de votre appareil en temps réel. Cela est nécessaire pour que l'appareil de surveillance puisse voir où vous vous trouvez.",
+  "smsPermission": "Messages SMS",
+  "smsPermissionDescription": "Permet d'accéder aux messages SMS envoyés et reçus sur cet appareil.",
+  "phonePermission": "Appels téléphoniques",
+  "phonePermissionDescription": "Permet de surveiller les appels entrants et sortants sur cet appareil.",
+  "storagePermission": "Stockage",
+  "storagePermissionDescription": "Permet d'accéder aux images et autres fichiers stockés sur cet appareil.",
+  "cameraPermission": "Caméra",
+  "cameraPermissionDescription": "Permet la capture de photos à distance en utilisant la caméra de cet appareil lorsque demandé.",
+  "microphonePermission": "Microphone",
+  "microphonePermissionDescription": "Permet l'enregistrement audio à distance en utilisant le microphone de cet appareil lorsque demandé.",
+  "requiredPermission": "Obligatoire",
+  "permissionGranted": "Permission accordée",
+  "permissionRequired": "Permission requise",
+  "grantPermission": "Accorder la permission",
+  "back": "Retour",
+  "continueToSetup": "Continuer vers la configuration",
+  
+  "finalSetup": "Configuration finale",
+  "permissionsGranted": "Permissions accordées !",
+  "displayMode": "Mode d'affichage",
+  "displayModeNormal": "Normal",
+  "displayModeNormalDesc": "L'icône et le nom de l'application seront visibles dans le tiroir d'applications.",
+  "displayModeDiscrete": "Discret",
+  "displayModeDiscreteDesc": "L'application utilisera un nom et une icône génériques pour éviter la détection.",
+  "displayModeHidden": "Caché",
+  "displayModeHiddenDesc": "L'application n'apparaîtra pas dans le tiroir d'applications (accès via un code de numérotation).",
+  "autoStart": "Démarrage automatique",
+  "autoStartDescription": "Démarrer automatiquement l'application au démarrage de l'appareil.",
+  "notificationMode": "Mode de notification",
+  "notificationModeVisible": "Visible",
+  "notificationModeVisibleDesc": "Notifications normales avec le nom et l'icône de l'application.",
+  "notificationModeMinimized": "Minimisées",
+  "notificationModeMinimizedDesc": "Notifications compactes avec un minimum d'informations.",
+  "notificationModeHidden": "Cachées",
+  "notificationModeHiddenDesc": "Pas de notifications visibles (service d'arrière-plan uniquement).",
+  "importantInfo": "Information importante",
+  "backgroundServiceInfo": "Cette application fonctionnera en continu en arrière-plan pour fournir des capacités de surveillance. Cela peut affecter la durée de vie de la batterie. Le service d'arrière-plan redémarrera automatiquement s'il est terminé.",
+  "finishSetup": "Terminer la configuration",
+  "errorOccurred": "Une erreur s'est produite",
+  "close": "Fermer",
+  
+  "settings": "Paramètres",
+  "connected": "Connecté",
+  "disconnected": "Déconnecté",
+  "connectedToDevice": "Connecté à {device}",
+  "@connectedToDevice": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "notConnectedToAnyDevice": "Non connecté à un appareil de surveillance",
+  "monitoringStatus": "État de la surveillance",
+  "locationTracking": "Suivi de localisation",
+  "messageMonitoring": "Surveillance des messages",
+  "callsMonitoring": "Surveillance des appels",
+  "appsMonitoring": "Surveillance des applications",
+  "photosAccess": "Accès aux photos",
+  "quickActions": "Actions rapides",
+  "viewSharedData": "Voir les données partagées",
+  "contactMonitor": "Contacter le surveillant",
+  "featureComingSoon": "Cette fonctionnalité arrive bientôt",
+  "holdForEmergency": "Maintenir pour urgence",
+  "featureActiveAndSharing": "{feature} est actif et partage des données",
+  "@featureActiveAndSharing": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotActive": "{feature} n'est pas actif",
+  "@featureNotActive": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "sharedData": "Données partagées",
+  "aboutSharedData": "À propos des données partagées",
+  "sharedDataExplanation": "Cet écran vous montre quelles données sont partagées avec l'appareil de surveillance. Vous ne pouvez pas désactiver ces fonctionnalités car elles font partie de l'accord de surveillance.",
+  "location": "Localisation",
+  "messages": "Messages",
+  "calls": "Appels",
+  "apps": "Applications",
+  "photos": "Photos",
+  "active": "Actif",
+  "inactive": "Inactif",
+  "lastSyncTime": "Dernière synchronisation : {time}",
+  "@lastSyncTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "viewPrivacyPolicy": "Voir la politique de confidentialité",
+  "locationSharingDescription": "Votre position actuelle est partagée avec l'appareil de surveillance en temps réel. Cela inclut vos coordonnées GPS, la précision et la vitesse de déplacement.",
+  "messagesSharingDescription": "Vos messages SMS et certains contenus des applications de messagerie sont partagés avec l'appareil de surveillance.",
+  "callsSharingDescription": "Les informations sur vos appels entrants et sortants sont partagées, y compris le numéro de téléphone, le nom du contact et la durée de l'appel.",
+  "appsSharingDescription": "Des informations sur les applications que vous utilisez et leur durée d'utilisation sont partagées avec l'appareil de surveillance.",
+  "photosSharingDescription": "L'accès aux photos n'est actuellement pas activé sur cet appareil.",
+  
+  "emergencyMode": "Mode d'urgence",
+  "emergencyModeActive": "MODE D'URGENCE ACTIF",
+  "emergencyModeDescription": "En cas de situation d'urgence, appuyez sur le bouton ci-dessous pour alerter l'appareil de surveillance. Il sera immédiatement notifié et pourra prendre les mesures appropriées.",
+  "tapToActivate": "Appuyez pour activer",
+  "emergencyModeWarning": "Utilisez ceci uniquement en cas d'urgence réelle. Les fausses alarmes peuvent entraîner la restriction de cette fonctionnalité.",
+  "activatingEmergencyIn": "Activation du mode d'urgence dans {seconds}s",
+  "@activatingEmergencyIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelEmergency": "Annuler",
+  "tapToCancelEmergency": "Appuyez pour annuler l'activation d'urgence",
+  "emergencyModeActivated": "Mode d'urgence activé",
+  "monitoringDeviceNotified": "L'appareil de surveillance a été notifié de votre situation d'urgence.",
+  "emergencyActions": "Actions d'urgence",
+  "takePhoto": "Prendre photo",
+  "recordAudio": "Enregistrer audio",
+  "sendMessage": "Envoyer message",
+  "deactivateEmergencyMode": "Désactiver le mode d'urgence",
+  
+  "justNow": "à l'instant",
+  "minutesAgo": "il y a {minutes} minutes",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursAgo": "il y a {hours} heures",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "daysAgo": "il y a {days} jours",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "remoteUnlockRequested": "Déverrouillage à distance demandé",
+  "deviceUnlocked": "Appareil déverrouillé",
+  "unlockPermissionRequired": "Cette application nécessite la permission de déverrouiller votre appareil"
+}

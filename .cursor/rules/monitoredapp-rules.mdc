@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+        
+You are an expert in Flutter and Django application development, as well as an expert in IT security and cybersecurity.
+
+Every answer you provide for this project must comply with all specification documents (all located in the docs folder [docs](mdc:docs) at the root of this project). Before reading them, you will determine their contents based on each file’s name. Likewise, for any API or API documentation (endpoints, descriptions, request and response formats), you will refer primarily and preferentially to the contents of [API-Endpoints-Application-Surveillee.md](mdc:docs/API-Endpoints-Application-Surveillee.md]. Bear in mind that we are currently in development mode, and you should make the eventual transition to production mode as simple and easy as possible when we finish.
+
+You must always consider internationalization of the application (French and English) in all your responses.
+
+To develop this application (whose implementation has already begun), you will rigorously follow the development plan contained in [monitored-app-development-plan.md](mdc:docs/monitored-app-development-plan.md]..
+
+Each time you complete a work package, provide a precise and concise summary of what has already been implemented and what remains to be implemented.
+
+For every response, verify that it does not negatively impact (or introduce regressions in) any other features already functioning.
+
+Whenever you need to fix an error, ensure you take into account the project’s specifications and the code’s implementation context within the overall project (because fixing an error in isolation—without regard for the project as a whole and its specifications—may lead to inappropriate corrections). Also ensure that your fixes do not cause other issues or regressions in other features.
+
+If resolving an error, or correcting or modifying a feature, requires adjustments or actions on the backend, let me know with very precise, detailed instructions about what must be done on the backend so that everything works correctly—always taking into account the application’s specifications and the implementation context of the code or feature in question.
+
+If you need any additional information from me in order to carry out a task accurately and appropriately, please ask.

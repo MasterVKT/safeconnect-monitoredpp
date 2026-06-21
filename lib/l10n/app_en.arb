@@ -188,5 +188,218 @@
   
   "remoteUnlockRequested": "Remote unlock requested",
   "deviceUnlocked": "Device unlocked",
-  "unlockPermissionRequired": "This application needs permission to unlock your device"
+  "unlockPermissionRequired": "This application needs permission to unlock your device",
+  
+  "scanQRCode": "Scan QR Code",
+  "qrScanInstructions": "Position the QR code within the frame to scan it",
+  "enterCodeManually": "Enter code manually",
+  "invalidQRCode": "Invalid QR code format",
+  "error": "Error",
+  "ok": "OK",
+  "confirm": "Confirm",
+  
+  "digitalConsent": "Digital Consent",
+  "consentFormTitle": "Monitoring Consent Agreement",
+  "consentFormDescription": "This application will monitor and collect data from this device. Please read the following information carefully and provide your explicit consent.",
+  "monitoringCapabilities": "Monitoring Capabilities",
+  "monitoringCapabilitiesDescription": "This application will collect the following types of data:",
+  "dataHandling": "Data Handling",
+  "dataHandlingDescription": "All collected data is encrypted and transmitted securely to authorized monitoring devices only.",
+  "dataRetentionInfo": "Data is retained according to your monitoring agreement and applicable privacy laws.",
+  "dataSecurityInfo": "We implement industry-standard security measures to protect your data.",
+  "yourRights": "Your Rights",
+  "rightsDescription": "You have the right to access, modify, or delete your personal data at any time.",
+  "withdrawalRights": "You can withdraw this consent at any time by contacting the monitoring administrator.",
+  "consentConfirmation": "Consent Confirmation",
+  "confirmAdultStatus": "I confirm that I am at least 18 years old",
+  "confirmAdultStatusDescription": "You must be an adult to provide legal consent",
+  "confirmReadTerms": "I have read and agree to the Terms of Service",
+  "confirmReadPrivacy": "I have read and understand the Privacy Policy",
+  "confirmMonitoringConsent": "I consent to monitoring of this device",
+  "confirmMonitoringConsentDescription": "This includes all data collection activities listed above",
+  "confirmDataCollection": "I understand how my data will be collected and used",
+  "confirmDataCollectionDescription": "Including storage, processing, and sharing with authorized parties",
+  "digitalSignature": "Digital Signature",
+  "signatureInstructions": "Please sign below to provide your legal consent:",
+  "clearSignature": "Clear",
+  "signatureDate": "Date: {date}",
+  "@signatureDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "giveConsent": "Give Consent",
+  "processing": "Processing...",
+  "allConsentItemsRequired": "Please check all consent items before proceeding",
+  "signatureRequired": "Please provide your digital signature",
+  "signatureExportFailed": "Failed to export signature",
+  "viewTermsOfService": "View Terms of Service",
+  "viewPrivacyPolicy": "View Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfServiceContent": "These terms govern your use of the XP SafeConnect monitoring application. By using this application, you agree to be monitored according to the capabilities described in this consent form. The monitoring is conducted for legitimate purposes such as parental control, family safety, or authorized workplace monitoring. You acknowledge that the data collected will be shared with authorized monitoring devices and may be used for safety, security, and compliance purposes.",
+  "privacyPolicyContent": "Your privacy is important to us. This application collects location data, communication logs, application usage, and other device information for monitoring purposes. All data is encrypted during transmission and storage. Access to your data is limited to authorized monitoring administrators. You have the right to request access to your data, correction of inaccurate data, or deletion of your data subject to legal and safety requirements.",
+  "processingConsent": "Processing Consent",
+  "pleaseWait": "Please wait while we process your consent...",
+  
+  "essentialPermissions": "Essential Permissions",
+  "monitoringPermissions": "Monitoring Permissions", 
+  "advancedPermissions": "Advanced Permissions",
+  "optionalPermissions": "Optional Permissions",
+  "checkingPermissions": "Checking Permissions",
+  "noPermissionsToRequest": "No permissions to request",
+  "permissionStep": "Step {current} of {total}",
+  "@permissionStep": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "whyThisPermission": "Why this permission?",
+  "requiredPermissionWarning": "This permission is required for the app to function properly",
+  "troubleshootingSteps": "Troubleshooting Steps",
+  "needHelp": "Need Help?",
+  "hideTroubleshooting": "Hide Help",
+  "skipOptional": "Skip (Optional)",
+  
+  "accessibilityPermission": "Accessibility Service",
+  "accessibilityPermissionDescription": "Allows monitoring of app usage and messaging",
+  "accessibilityPermissionDetailed": "The accessibility service is required to monitor app usage, detect messaging activity, and provide comprehensive device monitoring. This is essential for the monitoring functionality to work properly.",
+  
+  "usageStatsPermission": "Usage Statistics",
+  "usageStatsPermissionDescription": "Tracks which apps are used and for how long",
+  "usageStatsPermissionDetailed": "Usage statistics permission allows the app to track which applications are opened, how long they are used, and when they are closed. This data is essential for comprehensive device monitoring.",
+  
+  "deviceAdminPermission": "Device Administrator",
+  "deviceAdminPermissionDescription": "Allows remote device control and anti-tamper protection",
+  "deviceAdminPermissionDetailed": "Device administrator privileges enable remote locking/unlocking, prevent unauthorized uninstallation, and provide enhanced security features. This is optional but recommended for full functionality.",
+  
+  "batteryOptimizationPermission": "Battery Optimization",
+  "batteryOptimizationPermissionDescription": "Prevents the app from being killed by power management",
+  "batteryOptimizationPermissionDetailed": "Disabling battery optimization ensures the app continues running in the background for continuous monitoring. This prevents Android's power management from stopping the monitoring service.",
+  
+  "locationPermissionDetailed": "Location access is required for real-time GPS tracking. The app needs 'Allow all the time' permission to track location even when the app is not actively being used.",
+  "phonePermissionDetailed": "Phone permission allows monitoring of incoming and outgoing calls, including call duration, contact information, and call state. This is essential for call monitoring features.",
+  "smsPermissionDetailed": "SMS permission enables monitoring of text messages, including reading incoming messages and tracking messaging activity. This is required for comprehensive communication monitoring.",
+  "cameraPermissionDetailed": "Camera access allows remote photo capture when requested by the monitoring device. This enables safety features like emergency photo capture.",
+  "microphonePermissionDetailed": "Microphone access enables remote audio recording capabilities when requested by the monitoring device. This supports emergency monitoring and safety features.",
+  "notificationPermissionDetailed": "Notification permission allows the app to show important alerts, status updates, and emergency notifications. This ensures you stay informed about the monitoring status.",
+  
+  "permissionSummary": "Permission Summary",
+  "permissionsConfigured": "Permissions Configured!",
+  "permissionsPartiallyConfigured": "Permissions Partially Configured",
+  "permissionsGrantedSummary": "{granted} of {total} permissions granted",
+  "@permissionsGrantedSummary": {
+    "placeholders": {
+      "granted": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "permissionStatusDetails": "Permission Status Details",
+  "granted": "Granted",
+  "notGranted": "Not Granted",
+  "incompletePermissionsWarning": "Some permissions are missing",
+  "incompletePermissionsDescription": "The app may not function fully without all required permissions. You can continue with limited functionality or return to grant the missing permissions.",
+  "reviewPermissions": "Review Permissions",
+  "continueAnyway": "Continue Anyway",
+  "notificationPermission": "Notifications",
+  "notificationPermissionDescription": "Allows the app to display notifications",
+  
+  "mediaPermissions": "Media Permissions",
+  "systemPermissions": "System Permissions",
+  
+  "whyDoWeNeedThis": "Why do we need this?",
+  "permissionExplanation": "{explanation}",
+  "@permissionExplanation": {
+    "placeholders": {
+      "explanation": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "locationAlwaysPermission": "Background Location",
+  "locationAlwaysPermissionDescription": "Allows location tracking even when the app is not open",
+  "locationAlwaysPermissionExplanation": "Background location access is required for continuous location tracking. This ensures the monitoring device can always know your location for safety purposes.",
+  "locationPermissionExplanation": "Location access is required for real-time GPS tracking. The app needs location permission to track your position for safety and monitoring purposes.",
+  "smsPermissionExplanation": "SMS permission enables monitoring of text messages, including reading incoming messages and tracking messaging activity. This is required for comprehensive communication monitoring.",
+  "phonePermissionExplanation": "Phone permission allows monitoring of incoming and outgoing calls, including call duration, contact information, and call state. This is essential for call monitoring features.",
+  "usageStatsPermissionExplanation": "Usage statistics permission allows the app to track which applications are opened, how long they are used, and when they are closed. This data is essential for comprehensive device monitoring.",
+  "accessibilityServicePermissionExplanation": "The accessibility service is required to monitor app usage, detect messaging activity, and provide comprehensive device monitoring. This is essential for the monitoring functionality to work properly.",
+  "cameraPermissionExplanation": "Camera access allows remote photo capture when requested by the monitoring device. This enables safety features like emergency photo capture.",
+  "microphonePermissionExplanation": "Microphone access enables remote audio recording capabilities when requested by the monitoring device. This supports emergency monitoring and safety features.",
+  "storagePermissionExplanation": "Storage permission allows access to files and media on your device. This is needed to save monitoring data and access device content when required.",
+  "deviceAdminPermissionExplanation": "Device administrator privileges enable remote locking/unlocking, prevent unauthorized uninstallation, and provide enhanced security features. This is optional but recommended for full functionality.",
+  "batteryOptimizationPermissionExplanation": "Disabling battery optimization ensures the app continues running in the background for continuous monitoring. This prevents Android's power management from stopping the monitoring service.",
+  "notificationPermissionExplanation": "Notification permission allows the app to show important alerts, status updates, and emergency notifications. This ensures you stay informed about the monitoring status.",
+  
+  "optionalPermission": "Optional",
+  "skip": "Skip",
+  "completeSetup": "Complete Setup",
+  "openSettings": "Open Settings",
+  "permissionDenied": "Permission Denied",
+  "permissionPermanentlyDeniedMessage": "This permission has been permanently denied. You can grant it manually in the app settings.",
+  "incompleteSetup": "Incomplete Setup",
+  "requiredPermissionsMissing": "Some required permissions are still missing:",
+  
+  "p2pConnectionStatus": "P2P Connection Status",
+  "addConnection": "Add Connection",
+  "activeConnections": "Active Connections",
+  "noActiveConnections": "No active connections",
+  "p2pUninitialized": "Not initialized",
+  "p2pInitializing": "Initializing...",
+  "p2pReady": "Ready for connections",
+  "p2pConnectedDevices": "{count} devices connected",
+  "@p2pConnectedDevices": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "p2pConnecting": "Connecting...",
+  "p2pConnected": "Connected",
+  "p2pDisconnected": "Disconnected",
+  "p2pError": "Connection error",
+  "connectToDevice": "Connect to Device",
+  "deviceId": "Device ID",
+  "enterDeviceId": "Enter device ID",
+  "p2pConnectionInfo": "Enter the device ID of the monitoring device you want to connect to directly.",
+  "connect": "Connect",
+  "connectingToDevice": "Connecting to device...",
+  "connectionSuccessful": "Connection successful",
+  "connectionFailed": "Connection failed",
+  "connectionError": "Connection error occurred",
+  "connectedAt": "Connected at",
+  "sendCommand": "Send Command",
+  "sendFile": "Send File",
+  "disconnect": "Disconnect",
+  "lockDevice": "Lock Device",
+  "unlockDevice": "Unlock Device",
+  "restartDevice": "Restart Device",
+  "capturePhoto": "Capture Photo",
+  "commandSent": "Command sent successfully",
+  "commandFailed": "Command failed",
+  "commandError": "Error sending command",
+  "confirmDisconnection": "Confirm Disconnection",
+  "disconnectDeviceConfirmation": "Are you sure you want to disconnect from {deviceName}?",
+  "@disconnectDeviceConfirmation": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceDisconnected": "Device disconnected",
+  "disconnectionFailed": "Disconnection failed",
+  
+  "invalidPairingCodeFormat": "The pairing code must contain 6 digits",
+  "pairingFailed": "Pairing failed",
+  "networkError": "Network error",
+  
+  "logoutConfirmation": "Logout Confirmation",
+  "logoutConfirmationMessage": "Are you sure you want to logout? The application will be closed and will need to be paired again.",
+  "logout": "Logout"
 }

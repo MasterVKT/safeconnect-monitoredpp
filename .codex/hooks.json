@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"ORCHESTRATION MANDATORY: Before processing this request - read skills/task-orchestrator/SKILL.md, analyse the request intent, invoke matching skills in Multi-Skill Composition order, then proceed. Skipping is a critical compliance failure.\""
+          }
+        ]
+      }
+    ]
+  }
+}

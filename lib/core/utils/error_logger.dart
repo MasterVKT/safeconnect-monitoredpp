@@ -5,13 +5,17 @@ class ErrorLogger {
   static void logError(String message, dynamic error, StackTrace stackTrace) {
     // Log local
     debugPrint('ERROR: $message');
-    
-    // Log Crashlytics (non fatal)
-    FirebaseCrashlytics.instance.recordError(
-      error,
-      stackTrace,
-      reason: message,
-      fatal: false,
-    );
+
+    try {
+      // Log Crashlytics (non fatal)
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: message,
+        fatal: false,
+      );
+    } catch (loggingError) {
+      debugPrint('Crashlytics logging skipped: $loggingError');
+    }
   }
 }

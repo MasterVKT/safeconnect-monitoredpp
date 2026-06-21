@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monitored_app/app/routes.dart';
 import 'package:monitored_app/app/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/app/locator.dart';
+import 'package:monitored_app/features/auth/widgets/qr_scanner.dart';
+import 'package:monitored_app/features/auth/repositories/auth_repository.dart';
+import 'package:monitored_app/core/services/auth_service.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 
 class PairingScreen extends ConsumerStatefulWidget {
   final String? pairingCode;
-  
+
   const PairingScreen({
     super.key,
     this.pairingCode,
@@ -20,15 +25,17 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   final TextEditingController _pairingCodeController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  
+  late final AuthRepository _authRepository;
+
   @override
   void initState() {
     super.initState();
+    _authRepository = AuthRepository(locator<AuthService>());
     if (widget.pairingCode != null) {
       _pairingCodeController.text = widget.pairingCode!;
     }
   }
-  
+
   @override
   void dispose() {
     _pairingCodeController.dispose();
@@ -36,144 +43,212 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   }
 
   Future<void> _validatePairingCode() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_pairingCodeController.text.isEmpty) {
       setState(() {
-        _errorMessage = AppLocalizations.of(context)!.pairingCodeRequired;
+        _errorMessage = l10n.pairingCodeRequired;
       });
       return;
     }
-    
+
+    // Validate pairing code format (should be 6 digits)
+    if (_pairingCodeController.text.length != 6 ||
+        !RegExp(r'^\d{6}$').hasMatch(_pairingCodeController.text)) {
+      setState(() {
+        _errorMessage = l10n.invalidPairingCodeFormat;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-    
+
     try {
-      // TODO: Implement actual pairing functionality with the API
-      // For now, we'll simulate a successful pairing after a delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.permissions);
-      }
+      debugPrint(
+          'Starting device pairing with code: ${_pairingCodeController.text}');
+
+      // Use the actual AuthRepository to pair the device
+      final result =
+          await _authRepository.pairDevice(_pairingCodeController.text);
+
+      if (!context.mounted) return;
+
+      result.when(
+        success: (user) {
+          debugPrint('Device pairing successful');
+          Navigator.pushReplacementNamed(context, AppRoutes.consent);
+        },
+        error: (message, errorCode) {
+          setState(() {
+            _errorMessage = message;
+          });
+          debugPrint('Device pairing failed: $message');
+        },
+      );
     } catch (e) {
+      if (!context.mounted) return;
+
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = '${l10n.networkError}: $e';
       });
+      debugPrint('Error during device pairing: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  void _openQRScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QRScannerWidget(
+          onCodeScanned: (String code) {
+            Navigator.pop(context);
+            setState(() {
+              _pairingCodeController.text = code;
+            });
+            // Automatically validate the scanned code
+            _validatePairingCode();
+          },
+          onClose: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  void _showExitDialog() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.exitSetup),
+        content: Text(l10n.exitSetupConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Close the app properly
+              SystemNavigator.pop();
+            },
+            child: Text(l10n.exit),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Logo
-              Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 80,
-                  // If you don't have this asset yet, use a placeholder
-                  errorBuilder: (context, error, stackTrace) => Container(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Logo placeholder to avoid missing-asset crashes during setup.
+                  Container(
                     height: 80,
                     width: 80,
-                    color: AppTheme.primaryColor,
-                    child: const Center(
-                      child: Text(
-                        'LOGO',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 42,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              
-              // Welcome message
-              Text(
-                l10n.welcomeToSafeConnect,
-                style: Theme.of(context).textTheme.displayLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              
-              Text(
-                l10n.pairingScreenDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              
-              // Pairing code input
-              TextField(
-                controller: _pairingCodeController,
-                decoration: InputDecoration(
-                  labelText: l10n.pairingCode,
-                  hintText: l10n.enterPairingCode,
-                  errorText: _errorMessage,
-                  border: const OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, letterSpacing: 8),
-              ),
-              const SizedBox(height: 24),
-              
-              // Action buttons
-              ElevatedButton(
-                onPressed: _isLoading ? null : _validatePairingCode,
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : Text(l10n.continueText),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _isLoading ? null : () {
-                  // TODO: Implement exit functionality - possibly closing the app
-                  // For now, we'll just show a dialog
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(l10n.exitSetup),
-                      content: Text(l10n.exitSetupConfirmation),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(l10n.cancel),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // In a real app, you would exit here
-                          },
-                          child: Text(l10n.exit),
-                        ),
-                      ],
+                  const SizedBox(height: 40),
+
+                  // Welcome message
+                  Text(
+                    l10n.welcomeToSafeConnect,
+                    style: Theme.of(context).textTheme.displayLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    l10n.pairingScreenDescription,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Pairing code input
+                  TextField(
+                    controller: _pairingCodeController,
+                    decoration: InputDecoration(
+                      labelText: l10n.pairingCode,
+                      hintText: l10n.enterPairingCode,
+                      errorText: _errorMessage,
+                      border: const OutlineInputBorder(),
                     ),
-                  );
-                },
-                child: Text(l10n.cancel),
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20, letterSpacing: 8),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action buttons
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _validatePairingCode,
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                strokeWidth: 3,
+                              ),
+                            )
+                          : Text(l10n.continueText),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // QR Code Scanner button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _openQRScanner,
+                      icon: const Icon(Icons.qr_code_scanner),
+                      label: Text(l10n.scanQRCode),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _isLoading ? null : () => _showExitDialog(),
+                    child: Text(l10n.cancel),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

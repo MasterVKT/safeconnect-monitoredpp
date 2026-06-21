@@ -9,16 +9,22 @@ plugins {
 
 android {
     namespace = "com.xpsafeconnect.monitored_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     defaultConfig {
@@ -26,17 +32,90 @@ android {
         applicationId = "com.xpsafeconnect.monitored_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
-    buildTypes {
+    // Suppress deprecated API warnings for flutter_webrtc compatibility
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    // Security signing configurations
+    signingConfigs {
+        debug {
+            // Debug signing for development
+        }
+        
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            // Production signing configuration
+            // These should come from secure environment variables
+            storeFile file(System.getenv("KEYSTORE_PATH") ?: "debug.keystore")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("KEY_ALIAS") ?: "androiddebugkey"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            debuggable true
+            versionNameSuffix "-debug"
+            signingConfig signingConfigs.debug
+            
+            // Development build configurations
+            buildConfigField "boolean", "ENABLE_SECURITY_CHECKS", "false"
+            buildConfigField "boolean", "ENABLE_ANTI_TAMPER", "false"
+            buildConfigField "boolean", "STEALTH_MODE", "false"
+            buildConfigField "String", "BUILD_TYPE", "\"debug\""
+            buildConfigField "String", "API_BASE_URL", "\"https://dev-api.xpsafeconnect.com\""
+            buildConfigField "String", "WEBSOCKET_URL", "\"wss://dev-ws.xpsafeconnect.com\""
+        }
+        
+        release {
+            // Code obfuscation and security hardening
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+            
+            // ProGuard/R8 configuration for obfuscation
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Production signing
+            signingConfig signingConfigs.release
+            
+            // Production build configurations
+            buildConfigField "boolean", "ENABLE_SECURITY_CHECKS", "true"
+            buildConfigField "boolean", "ENABLE_ANTI_TAMPER", "true"
+            buildConfigField "boolean", "STEALTH_MODE", "false"
+            buildConfigField "String", "BUILD_TYPE", "\"release\""
+            buildConfigField "String", "API_BASE_URL", "\"https://api.xpsafeconnect.com\""
+            buildConfigField "String", "WEBSOCKET_URL", "\"wss://ws.xpsafeconnect.com\""
+            buildConfigField "String", "SECURITY_KEY", "\"${getSecurityKey()}\""
+            buildConfigField "String", "BUILD_FINGERPRINT", "\"${getBuildFingerprint()}\""
+            buildConfigField "String", "BUILD_SIGNATURE", "\"${getBuildSignature()}\""
+            
+            // Additional security measures
+            packagingOptions {
+                exclude 'META-INF/MANIFEST.MF'
+                exclude 'META-INF/*.SF'
+                exclude 'META-INF/*.DSA'
+                exclude 'META-INF/*.RSA'
+                exclude 'META-INF/*.MF'
+                exclude 'META-INF/LICENSE*'
+                exclude 'META-INF/NOTICE*'
+                exclude 'META-INF/DEPENDENCIES*'
+                exclude '**/*.kotlin_metadata'
+                exclude '**/*.kotlin_module'
+                exclude '**/kotlin/**'
+                pickFirst '**/libc++_shared.so'
+                pickFirst '**/libjsc.so'
+            }
         }
     }
 }
@@ -47,6 +126,10 @@ dependencies {
 
   implementation("com.google.firebase:firebase-crashlytics")
   implementation("com.google.firebase:firebase-analytics")
+  
+    // Core library desugaring for flutter_local_notifications
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+  
   // TODO: Add the dependencies for Firebase products you want to use
   // When using the BoM, don't specify versions in Firebase dependencies
   // https://firebase.google.com/docs/android/setup#available-libraries
@@ -54,4 +137,83 @@ dependencies {
 
 flutter {
     source = "../.."
+}
+
+// Security key generation functions
+def getSecurityKey() {
+    def key = System.getenv('SECURITY_KEY') ?: project.hasProperty('SECURITY_KEY') ? project.getProperty('SECURITY_KEY') : 'default_key'
+    return key
+}
+
+def getStealthSecurityKey() {
+    def key = System.getenv('STEALTH_SECURITY_KEY') ?: project.hasProperty('STEALTH_SECURITY_KEY') ? project.getProperty('STEALTH_SECURITY_KEY') : 'stealth_default_key'
+    return key
+}
+
+def getBuildFingerprint() {
+    def fingerprint = System.getenv('BUILD_FINGERPRINT') ?: "build_${new Date().time}"
+    return fingerprint
+}
+
+def getBuildSignature() {
+    def signature = System.getenv('BUILD_SIGNATURE') ?: "signature_${new Date().time}"
+    return signature
+}
+
+def getStealthBuildFingerprint() {
+    def fingerprint = System.getenv('STEALTH_BUILD_FINGERPRINT') ?: "stealth_build_${new Date().time}"
+    return fingerprint
+}
+
+// Build validation tasks
+task validateBuildSecurity {
+    doLast {
+        println "Validating build security configuration..."
+        
+        def requiredEnvVars = ['KEYSTORE_PATH', 'KEYSTORE_PASSWORD', 'KEY_ALIAS', 'KEY_PASSWORD']
+        def missingVars = requiredEnvVars.findAll { !System.getenv(it) }
+        
+        if (!missingVars.isEmpty() && gradle.taskGraph.hasTask(':app:assembleRelease')) {
+            throw GradleException("Missing required environment variables for release build: ${missingVars.join(', ')}")
+        }
+        
+        println "Build security validation completed."
+    }
+}
+
+// Security pre-build tasks
+task cleanBuildArtifacts(type: Delete) {
+    delete fileTree(dir: 'build', includes: ['**/*.apk', '**/*.aab', '**/*.mapping.txt'])
+    delete fileTree(dir: '../../build', includes: ['**/*.apk', '**/*.aab'])
+}
+
+task generateSecurityHashes {
+    doLast {
+        println "Generating security hashes..."
+        
+        def buildTime = new Date().time
+        def securityHash = java.security.MessageDigest.getInstance("SHA-256")
+            .digest("${buildTime}_${getSecurityKey()}".bytes)
+            .encodeHex().toString()
+        
+        // Store security hash for runtime verification
+        def securityPropsFile = file('src/main/assets/security.properties')
+        securityPropsFile.parentFile.mkdirs()
+        securityPropsFile.text = """
+security.hash=${securityHash}
+build.time=${buildTime}
+build.version=${android.defaultConfig.versionName}
+build.type=${gradle.taskGraph.hasTask(':app:assembleRelease') ? 'release' : 'debug'}
+""".trim()
+        
+        println "Security hashes generated."
+    }
+}
+
+// Hook into build process
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('assemble')) {
+        task.dependsOn validateBuildSecurity
+        task.dependsOn generateSecurityHashes
+    }
 }

@@ -30,7 +30,7 @@ Pour les modifications ciblées, décrivez le changement et présentez un diff.
 
 Pour la création de fichiers ou la réécriture complète, vous devez générer l'intégralité du contenu final du fichier. Toute omission sera considérée comme une erreur.
 
-Navigation : Vous comprenez la structure du projet grâce à l'arborescence des fichiers. Référencez les fichiers avec leurs chemins relatifs depuis la racine du projet (H:\Projects\XP SafeConnect\flutter_apps\monitor_appk).
+Navigation : Vous comprenez la structure du projet grâce à l'arborescence des fichiers. Référencez les fichiers avec leurs chemins relatifs depuis la racine du projet (H:\Projects\XP SafeConnect\flutter_apps\monitored_appk).
 
 b. Analyse et Recherche de Code
 Compréhension Symbolique : Vous pouvez identifier et naviguer vers des définitions de fonctions, classes, ou variables dans tout le projet. Utilisez cette capacité pour comprendre les relations dans le code avant de proposer des modifications.
@@ -44,7 +44,7 @@ Explication Requise : Avant d'exécuter une commande, vous DEVEZ expliquer ce qu
 
 Portabilité : Concevez des commandes compatibles avec l'OS de l'utilisateur (Windows 11) et utilisez des chemins relatifs pour garantir la cohérence.
 
-Contexte d'Exécution : Les commandes s'exécutent par défaut à la racine de l'espace de travail (H:\Projects\XP SafeConnect\flutter_apps\monitor_app).
+Contexte d'Exécution : Les commandes s'exécutent par défaut à la racine de l'espace de travail (H:\Projects\XP SafeConnect\flutter_apps\monitored_app).
 
 d. Interaction avec l'Utilisateur
 Clarification Intelligente : Si une demande est ambiguë et que le contexte ne suffit pas, posez une question claire et concise pour obtenir les informations manquantes.

@@ -1,0 +1,13 @@
+# Dépendances (Très lourd en tokens !)
+node_modules/
+
+__pycache__/
+
+# Dossiers de build et sorties
+dist/
+build/
+*.exe
+*.dll
+
+
+

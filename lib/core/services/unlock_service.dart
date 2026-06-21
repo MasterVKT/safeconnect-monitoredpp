@@ -29,4 +29,19 @@ class UnlockService {
       return false;
     }
   }
+
+  // Tente de verrouiller l'appareil
+  Future<bool> lockDevice() async {
+    try {
+      // Appelle la méthode native pour verrouiller l'appareil
+      final result = await _platform.invokeMethod('lockDevice');
+      return result == true;
+    } on PlatformException catch (e) {
+      debugPrint('Failed to lock device: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('Exception during device lock: $e');
+      return false;
+    }
+  }
 }

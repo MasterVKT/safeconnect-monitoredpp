@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monitored_app/app/routes.dart';
 import 'package:monitored_app/app/theme.dart';
 import 'package:monitored_app/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 
 class SafeConnectMonitored extends ConsumerWidget {
   const SafeConnectMonitored({super.key});

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">XP SafeConnect</string>
+    <string name="accessibility_service_description">XP SafeConnect Monitoring Service\n\nThis accessibility service enables comprehensive device monitoring including:\n• App usage tracking\n• Messaging activity detection\n• User interaction monitoring\n\nThis service is required for proper monitoring functionality and will only collect data as authorized by the device owner.</string>
+    <string name="device_admin_description">XP SafeConnect Device Administrator\n\nEnables enhanced security features including:\n• Remote device locking/unlocking\n• Anti-tamper protection\n• Prevent unauthorized uninstallation\n\nThese features help ensure continuous monitoring and device security.</string>
+</resources>

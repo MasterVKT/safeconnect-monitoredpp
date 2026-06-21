@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:monitored_app/app/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 
 class SharedDataScreen extends StatelessWidget {
   const SharedDataScreen({super.key});
@@ -60,7 +60,7 @@ class SharedDataScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -97,12 +97,7 @@ class SharedDataScreen extends StatelessWidget {
             // Privacy policy link
             Center(
               child: TextButton.icon(
-                onPressed: () {
-                  // TODO: Open privacy policy
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.featureComingSoon)),
-                  );
-                },
+                onPressed: () => _showPrivacyPolicy(context),
                 icon: const Icon(Icons.privacy_tip_outlined),
                 label: Text(l10n.viewPrivacyPolicy),
               ),
@@ -132,9 +127,9 @@ class SharedDataScreen extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: isActive 
-                        ? AppTheme.primaryColor.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                    color: isActive
+                        ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -162,9 +157,9 @@ class SharedDataScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isActive 
-                        ? AppTheme.secondaryColor.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                    color: isActive
+                        ? AppTheme.secondaryColor.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -206,5 +201,140 @@ class SharedDataScreen extends StatelessWidget {
     } else {
       return l10n.daysAgo(difference.inDays.toString());
     }
+  }
+
+  void _showPrivacyPolicy(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.8,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.privacyPolicy,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const Divider(),
+              
+              // Privacy policy content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPrivacySection(
+                        context,
+                        'Collecte de Données',
+                        'Cette application collecte les données suivantes pour assurer la sécurité et le contrôle parental :\n\n'
+                        '• Position géographique (GPS et réseau)\n'
+                        '• Messages SMS et historique d\'appels\n'
+                        '• Utilisation des applications\n'
+                        '• Photos et enregistrements audio (en cas d\'urgence)\n'
+                        '• Informations sur l\'appareil',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Utilisation des Données',
+                        'Les données collectées sont utilisées pour :\n\n'
+                        '• Surveiller la sécurité de l\'utilisateur\n'
+                        '• Répondre aux situations d\'urgence\n'
+                        '• Fournir un contrôle parental approprié\n'
+                        '• Améliorer les fonctionnalités de l\'application',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Partage des Données',
+                        'Les données ne sont partagées qu\'avec :\n\n'
+                        '• Les parents ou tuteurs légaux autorisés\n'
+                        '• Les services d\'urgence en cas de situation critique\n'
+                        '• Les fournisseurs de services techniques (chiffrées)',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Sécurité',
+                        'Toutes les données sont :\n\n'
+                        '• Chiffrées pendant le transport et le stockage\n'
+                        '• Stockées sur des serveurs sécurisés\n'
+                        '• Protégées par des mesures de sécurité avancées\n'
+                        '• Accessibles uniquement aux utilisateurs autorisés',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Droits de l\'Utilisateur',
+                        'L\'utilisateur a le droit de :\n\n'
+                        '• Consulter les données collectées\n'
+                        '• Demander la suppression des données\n'
+                        '• Modifier les paramètres de collecte\n'
+                        '• Révoquer le consentement à tout moment',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Conservation des Données',
+                        'Les données sont conservées selon les politiques suivantes :\n\n'
+                        '• Localisation: 90 jours\n'
+                        '• Messages et appels: 180 jours\n'
+                        '• Utilisation des apps: 365 jours\n'
+                        '• Médias d\'urgence: 30 jours\n'
+                        '• Informations de l\'appareil: 365 jours',
+                      ),
+                      _buildPrivacySection(
+                        context,
+                        'Contact',
+                        'Pour toute question concernant cette politique de confidentialité, '
+                        'veuillez contacter le support technique de XP SafeConnect.',
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Dernière mise à jour: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacySection(BuildContext context, String title, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
   }
 }

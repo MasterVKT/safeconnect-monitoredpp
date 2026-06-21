@@ -1,23 +1,395 @@
 ---
-description: 
-globs: 
+description: Monitored App (XP SafeConnect) - AI Agent Rules for Cursor
+globs: ["**/*"]
 alwaysApply: true
 ---
-        
-You are an expert in Flutter and Django application development, as well as an expert in IT security and cybersecurity.
 
-Every answer you provide for this project must comply with all specification documents (all located in the docs folder [docs](mdc:docs) at the root of this project). Before reading them, you will determine their contents based on each file’s name. Likewise, for any API or API documentation (endpoints, descriptions, request and response formats), you will refer primarily and preferentially to the contents of [API-Endpoints-Application-Surveillee.md](mdc:docs/API-Endpoints-Application-Surveillee.md]. Bear in mind that we are currently in development mode, and you should make the eventual transition to production mode as simple and easy as possible when we finish.
+# Cursor AI Rules - Monitored App (XP SafeConnect)
 
-You must always consider internationalization of the application (French and English) in all your responses.
+**Version**: 2.0 (Complete & Optimized - Synchronized)
+**Date**: 23/01/2026
+**Project**: XP SafeConnect - Monitored App (Parental Control & Family Safety)
 
-To develop this application (whose implementation has already begun), you will rigorously follow the development plan contained in [monitored-app-development-plan.md](mdc:docs/monitored-app-development-plan.md]..
+This file provides comprehensive guidance for Cursor AI when working on the Monitored App. For detailed information on specific topics, refer to files in `.cursor/rules/detailed/`.
 
-Each time you complete a work package, provide a precise and concise summary of what has already been implemented and what remains to be implemented.
+---
 
-For every response, verify that it does not negatively impact (or introduce regressions in) any other features already functioning.
+## 1. Project Overview
 
-Whenever you need to fix an error, ensure you take into account the project’s specifications and the code’s implementation context within the overall project (because fixing an error in isolation—without regard for the project as a whole and its specifications—may lead to inappropriate corrections). Also ensure that your fixes do not cause other issues or regressions in other features.
+The Monitored App is a **Flutter-based monitoring/surveillance application** for the XP SafeConnect ecosystem, designed for **legitimate parental control and family safety use cases**.
 
-If resolving an error, or correcting or modifying a feature, requires adjustments or actions on the backend, let me know with very precise, detailed instructions about what must be done on the backend so that everything works correctly—always taking into account the application’s specifications and the implementation context of the code or feature in question.
+### Technology Stack
 
-If you need any additional information from me in order to carry out a task accurately and appropriately, please ask.
+- **Frontend**: Flutter 3.x, Dart
+- **State Management**: Riverpod
+- **Dependency Injection**: GetIt (service locator pattern)
+- **Data Models**: Freezed (immutable models)
+- **Local Storage**: SQLite + Flutter Secure Storage
+- **Backend**: Django REST API
+- **Platforms**: Android (full-featured), iOS (limited functionality)
+
+### Key Architectural Principles
+
+- **Background-first design**: Core functionality runs in background services
+- **Native platform integration**: MethodChannels for platform-specific features
+- **Modular collectors**: Separate collectors for SMS, calls, location, apps, media
+- **Adaptive battery optimization**: Dynamic adjustment based on battery level
+
+### Project Context
+
+**CRITICAL**: All implementation must strictly comply with:
+
+- **Specification files** in `docs/` folder
+- **API documentation**: `docs/API-Endpoints-Application-Surveillee.md` (primary reference)
+- **Development plan**: `docs/monitored-app-development-plan.md`
+
+---
+
+## 2. Core Operating Principles
+
+### Before Acting (10 Essential Checks)
+
+#### 1. Strict Compliance With Project Specifications
+
+✅ **ALWAYS**: Comply with ALL documents in `docs/` folder
+✅ **Primary API Reference**: `docs/API-Endpoints-Application-Surveillee.md`
+✅ **Structure**: Code for easy dev → prod switching
+
+```dart
+// ✅ CORRECT: Environment-aware configuration
+final apiUrl = BuildConfig.isProduction ? 'https://api.xpsafeconnect.com' : 'http://localhost:8000';
+
+// ❌ WRONG: Hardcoded production URL
+final apiUrl = 'https://api.xpsafeconnect.com';
+```
+
+#### 2. Respect the Development Plan
+
+✅ **ALWAYS**: Follow step order in `docs/monitored-app-development-plan.md`
+
+#### 3. Ensure You Have All Necessary Information
+
+✅ **Before responding**: Verify you have all details
+✅ **If unclear**: Ask precise questions
+✅ **Never assume**: Always clarify ambiguities
+
+#### 4. Internationalization (i18n)
+
+✅ **REQUIRED**: Support French (primary) and English
+✅ **UI elements**: All text via `app_en.arb` / `app_fr.arb`
+
+```dart
+// ✅ CORRECT
+Text(AppLocalizations.of(context)!.welcomeMessage);
+
+// ❌ WRONG
+Text('Bienvenue'); // Hardcoded
+```
+
+#### 5. Real-World, Production-Valid Implementation
+
+✅ **ONLY implement**: Real production-ready solutions
+❌ **AVOID**: Temporary/hardcoded values, static test data
+
+#### 6. Consistency and Regression Avoidance
+
+✅ **ALWAYS**: Ensure no negative impact on existing features
+✅ **RUN**: `flutter analyze` before committing
+
+#### 7. Error Correction
+
+✅ **ALWAYS consider**: Project specs, implementation context
+✅ **IF backend change needed**: Provide detailed instructions
+
+#### 8. Coordination With Backend
+
+✅ **ALWAYS**: Ensure alignment with project specifications
+✅ **Provide clear instructions** for backend/frontend changes
+
+#### 9. Summaries and Progress Tracking
+
+✅ **After each work package**: Provide precise, concise summary
+✅ **Include**: What has been implemented, what remains
+
+#### 10. Execution Environment
+
+✅ **Prefer**: Command Prompt for commands
+✅ **Platform**: Windows development environment
+
+### During Implementation
+
+✅ **Complete code**: No placeholders, no `// TODO`, no pseudocode
+✅ **Production-valid**: Real-world solutions only
+✅ **Follow patterns**: Analyze surrounding code, match existing style
+✅ **Check regressions**: Verify no existing functionality breaks
+✅ **Security-aware**: Handle sensitive data securely
+
+### After Implementation
+
+✅ **Summarize work**: Precise, concise summary
+✅ **List remaining tasks**: Clear next steps
+✅ **Backend impact**: Document any backend changes required
+✅ **Code quality**: Ensure `flutter analyze` passes (zero warnings)
+
+---
+
+## 3. Critical Technical Rules
+
+**⚠️ THESE RULES MUST NEVER BE VIOLATED**
+
+### Rule 1: Use Dependency Injection via GetIt
+
+All services must be accessed through the GetIt service locator. Never instantiate services directly.
+
+```dart
+// ✅ CORRECT
+final authService = locator<AuthService>();
+await authService.login(credentials);
+
+// ❌ WRONG
+final authService = AuthService(); // Direct instantiation
+```
+
+**Why**: Ensures singleton pattern, testability, centralized lifecycle management.
+
+---
+
+### Rule 2: Use Riverpod for State Management
+
+UI state must be managed with Riverpod. Do not use StatefulWidgets for complex state.
+
+```dart
+// ✅ CORRECT
+class MyWidget extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myState = ref.watch(myProvider);
+    return Text(myState.message);
+  }
+}
+
+// ❌ WRONG
+class MyWidget extends StatefulWidget {
+  // Manual state management
+}
+```
+
+**Why**: Provides reactive state management, better testability.
+
+---
+
+### Rule 3: Background-First Design
+
+Core monitoring logic belongs in background services (`lib/core/services/`), not the UI layer.
+
+```dart
+// ✅ CORRECT
+// In lib/core/services/data_collector_service.dart
+class DataCollectorService {
+  Future<void> collectSmsData() async {
+    final smsList = await _smsCollector.collect();
+    await _storageService.saveSmsData(smsList);
+  }
+}
+
+// ❌ WRONG
+// Complex data collection logic in widget
+```
+
+**Why**: Ensures monitoring continues even when UI is closed.
+
+---
+
+### Rule 4: Use Native Bridges for Platform Features
+
+Access platform-specific APIs through established MethodChannel bridges.
+
+```dart
+// ✅ CORRECT
+class SmsCollector {
+  static const _channel = MethodChannel('com.xpsafeconnect/sms');
+
+  Future<List<SmsMessage>> collect() async {
+    final result = await _channel.invokeMethod('getSmsMessages');
+    return result.map((e) => SmsMessage.fromJson(e)).toList();
+  }
+}
+
+// ❌ WRONG
+// Trying to access Android APIs directly from Dart
+```
+
+**Why**: Flutter cannot directly access platform APIs. MethodChannels bridge Dart ↔ Native.
+
+---
+
+### Rule 5: Internationalize All User-Facing Text
+
+Use localization files for ALL text displayed in the UI. No hardcoded strings.
+
+```dart
+// ✅ CORRECT
+Text(AppLocalizations.of(context)!.welcomeMessage);
+
+// ❌ WRONG
+Text('Welcome'); // Hardcoded
+```
+
+**Why**: App must support French (primary) and English.
+
+---
+
+### Rule 6: Handle Errors Gracefully and Securely
+
+Wrap all fallible operations in try-catch blocks. Use Firebase Crashlytics for reporting.
+
+```dart
+// ✅ CORRECT
+try {
+  await _apiClient.syncData(data);
+} on DioException catch (e, stackTrace) {
+  await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+  _notificationService.showError(AppLocalizations.of(context)!.syncErrorMessage);
+} catch (e, stackTrace) {
+  await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+}
+
+// ❌ WRONG
+await _apiClient.syncData(data); // No error handling
+```
+
+**Why**: Network/platform calls can fail. Users should see friendly messages.
+
+---
+
+## 4. Integration Issue Documentation Rule
+
+When you detect an integration issue, **MUST automatically create** a markdown file.
+
+**Triggers**: HTTP 4xx/5xx errors, data format mismatches, auth failures, WebSocket failures
+
+**File Naming**: `docs/integration_issues/INTEGRATION_ISSUE_[TYPE]_[DESC]_[YYYYMMDD].md`
+
+**Template**: See `.cursor/rules/detailed/integration-issue-documentation.md`
+
+---
+
+## 5. Architecture Summary
+
+4-layer architecture:
+
+1. **Features (UI)** - `lib/features/` - Riverpod for state
+2. **Service Layer** - `lib/core/services/` - Registered in GetIt
+3. **Data Collectors** - `lib/core/collectors/` - Inherit from BaseCollector
+4. **Native Bridges** - `android/app/src/main/kotlin/`, `ios/Runner/`
+
+**Key Services**: BackgroundService, WebSocketService, AuthService, StorageService, BatteryMonitorService, DataCollectorService
+
+**For detailed architecture**: `.cursor/rules/detailed/architecture-detailed.md`
+
+---
+
+## 6. Development Commands
+
+```bash
+# Run app
+flutter run
+
+# Tests
+flutter test
+
+# Code quality (MUST pass with zero warnings)
+flutter analyze
+dart format .
+
+# Code generation
+dart run build_runner build --delete-conflicting-outputs
+
+# Dependencies
+flutter pub get
+```
+
+---
+
+## 7. Implementation Checklist
+
+**Critical Technical Rules** (6 Rules):
+
+- [ ] Rule 1: GetIt dependency injection
+- [ ] Rule 2: Riverpod for state management
+- [ ] Rule 3: Background-first design
+- [ ] Rule 4: MethodChannels for native features
+- [ ] Rule 5: Internationalized text
+- [ ] Rule 6: Error handling with Crashlytics
+
+**Core Operating Principles**:
+
+- [ ] Complies with specs in `docs/`
+- [ ] Follows development plan
+- [ ] Production-valid implementation
+- [ ] No regressions
+- [ ] Backend impact assessed
+
+**Quality**:
+
+- [ ] `flutter analyze` passes (zero warnings)
+- [ ] Code formatted with `dart format`
+- [ ] Integration issue file created (if applicable)
+- [ ] Summary provided
+
+**For complete checklist**: `.cursor/rules/detailed/implementation-checklist.md`
+
+---
+
+## 8. Detailed Documentation (On-Demand)
+
+- **Detailed Architecture**: `.cursor/rules/detailed/architecture-detailed.md`
+- **Detailed Code Style Guide**: `.cursor/rules/detailed/code-style-detailed.md`
+- **Full Implementation Checklist**: `.cursor/rules/detailed/implementation-checklist.md`
+- **Integration Issue Documentation Template**: `.cursor/rules/detailed/integration-issue-documentation.md`
+
+---
+
+## Summary
+
+Flutter-based monitoring application for **legitimate parental control and family safety**:
+
+1. **Strict compliance** with project specifications in `docs/`
+2. **Background-first architecture** for continuous monitoring
+3. **6 critical technical rules** that must never be violated
+4. **Production-ready code** with proper error handling and internationalization
+5. **Security and privacy** through secure storage
+
+**Primary workflow**: Read specs → follow development plan → implement with critical rules → test thoroughly → document integration issues → provide clear summary.
+
+---
+
+---
+
+## Double Check Completion (Mandatory)
+
+Before sending any final response that claims to complete a task:
+
+1. Draft completion internally — produce the result as normal.
+2. Re-read the original user request verbatim.
+3. Verify each requirement against what was actually done:
+   - Every explicit requirement addressed?
+   - Every file the user mentioned touched?
+   - Every constraint respected (naming, style, pattern, language)?
+   - No requirement silently dropped or partially implemented?
+4. If any gap is found — fix it before responding. Do not mention the gap; just fix it.
+5. Only then send the final response.
+
+This step is mandatory even when the task seems trivial.
+
+---
+
+## Additional Cross-Agent Rules (2026-03-06)
+
+- Frontend log sweep: During log analysis for a task, also fix unrelated frontend errors found in the same logs when the fix is low-risk and in scope.
+- Backend issue reporting: If analysis indicates a backend-side issue, create a detailed, structured markdown report describing the problem and the proposed solution; if and only if part of the issue also concerned frontend and that frontend part is already resolved, include a dedicated detailed section describing exactly what was already implemented on frontend side.
+- Monitor app issue reporting: If analysis indicates an issue in the monitor app frontend, create a detailed, structured markdown report describing the problem and the proposed solution.
+
+---
+
+**Version**: 2.1 (Cross-agent rules synchronized) | **Date**: 13/05/2026

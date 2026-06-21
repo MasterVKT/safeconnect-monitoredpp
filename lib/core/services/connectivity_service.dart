@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-enum NetworkStatus { online, offline }
+enum NetworkStatus { online, offline, wifi, mobile }
 
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
@@ -26,17 +26,35 @@ class ConnectivityService {
   }
   
   void _checkStatus(ConnectivityResult result) async {
-    if (result == ConnectivityResult.none) {
-      _controller.add(NetworkStatus.offline);
-    } else {
-      _controller.add(NetworkStatus.online);
+    switch (result) {
+      case ConnectivityResult.none:
+        _controller.add(NetworkStatus.offline);
+        break;
+      case ConnectivityResult.wifi:
+        _controller.add(NetworkStatus.wifi);
+        break;
+      case ConnectivityResult.mobile:
+        _controller.add(NetworkStatus.mobile);
+        break;
+      default:
+        _controller.add(NetworkStatus.online);
+        break;
     }
   }
   
   // Vérifier l'état actuel de la connectivité
   Future<NetworkStatus> checkConnectivity() async {
     ConnectivityResult result = await _connectivity.checkConnectivity();
-    return result == ConnectivityResult.none ? NetworkStatus.offline : NetworkStatus.online;
+    switch (result) {
+      case ConnectivityResult.none:
+        return NetworkStatus.offline;
+      case ConnectivityResult.wifi:
+        return NetworkStatus.wifi;
+      case ConnectivityResult.mobile:
+        return NetworkStatus.mobile;
+      default:
+        return NetworkStatus.online;
+    }
   }
   
   void dispose() {

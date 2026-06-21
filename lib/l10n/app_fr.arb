@@ -188,5 +188,218 @@
   
   "remoteUnlockRequested": "Déverrouillage à distance demandé",
   "deviceUnlocked": "Appareil déverrouillé",
-  "unlockPermissionRequired": "Cette application nécessite la permission de déverrouiller votre appareil"
+  "unlockPermissionRequired": "Cette application nécessite la permission de déverrouiller votre appareil",
+  
+  "scanQRCode": "Scanner le code QR",
+  "qrScanInstructions": "Positionnez le code QR dans le cadre pour le scanner",
+  "enterCodeManually": "Saisir le code manuellement",
+  "invalidQRCode": "Format de code QR invalide",
+  "error": "Erreur",
+  "ok": "OK",
+  "confirm": "Confirmer",
+  
+  "digitalConsent": "Consentement numérique",
+  "consentFormTitle": "Accord de consentement à la surveillance",
+  "consentFormDescription": "Cette application surveillera et collectera des données de cet appareil. Veuillez lire attentivement les informations suivantes et donner votre consentement explicite.",
+  "monitoringCapabilities": "Capacités de surveillance",
+  "monitoringCapabilitiesDescription": "Cette application collectera les types de données suivants :",
+  "dataHandling": "Traitement des données",
+  "dataHandlingDescription": "Toutes les données collectées sont chiffrées et transmises de manière sécurisée uniquement aux appareils de surveillance autorisés.",
+  "dataRetentionInfo": "Les données sont conservées selon votre accord de surveillance et les lois applicables sur la confidentialité.",
+  "dataSecurityInfo": "Nous mettons en œuvre des mesures de sécurité standard de l'industrie pour protéger vos données.",
+  "yourRights": "Vos droits",
+  "rightsDescription": "Vous avez le droit d'accéder, modifier ou supprimer vos données personnelles à tout moment.",
+  "withdrawalRights": "Vous pouvez retirer ce consentement à tout moment en contactant l'administrateur de surveillance.",
+  "consentConfirmation": "Confirmation du consentement",
+  "confirmAdultStatus": "Je confirme que j'ai au moins 18 ans",
+  "confirmAdultStatusDescription": "Vous devez être majeur pour donner un consentement légal",
+  "confirmReadTerms": "J'ai lu et j'accepte les Conditions d'utilisation",
+  "confirmReadPrivacy": "J'ai lu et je comprends la Politique de confidentialité",
+  "confirmMonitoringConsent": "Je consens à la surveillance de cet appareil",
+  "confirmMonitoringConsentDescription": "Cela inclut toutes les activités de collecte de données listées ci-dessus",
+  "confirmDataCollection": "Je comprends comment mes données seront collectées et utilisées",
+  "confirmDataCollectionDescription": "Y compris le stockage, le traitement et le partage avec des parties autorisées",
+  "digitalSignature": "Signature numérique",
+  "signatureInstructions": "Veuillez signer ci-dessous pour donner votre consentement légal :",
+  "clearSignature": "Effacer",
+  "signatureDate": "Date : {date}",
+  "@signatureDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "giveConsent": "Donner le consentement",
+  "processing": "Traitement en cours...",
+  "allConsentItemsRequired": "Veuillez cocher tous les éléments de consentement avant de continuer",
+  "signatureRequired": "Veuillez fournir votre signature numérique",
+  "signatureExportFailed": "Échec de l'exportation de la signature",
+  "viewTermsOfService": "Voir les Conditions d'utilisation",
+  "viewPrivacyPolicy": "Voir la Politique de confidentialité",
+  "termsOfService": "Conditions d'utilisation",
+  "privacyPolicy": "Politique de confidentialité",
+  "termsOfServiceContent": "Ces conditions régissent votre utilisation de l'application de surveillance XP SafeConnect. En utilisant cette application, vous acceptez d'être surveillé selon les capacités décrites dans ce formulaire de consentement. La surveillance est menée à des fins légitimes telles que le contrôle parental, la sécurité familiale ou la surveillance autorisée en milieu de travail. Vous reconnaissez que les données collectées seront partagées avec des appareils de surveillance autorisés et peuvent être utilisées à des fins de sécurité et de conformité.",
+  "privacyPolicyContent": "Votre vie privée est importante pour nous. Cette application collecte des données de localisation, des journaux de communication, l'utilisation d'applications et d'autres informations sur l'appareil à des fins de surveillance. Toutes les données sont chiffrées pendant la transmission et le stockage. L'accès à vos données est limité aux administrateurs de surveillance autorisés. Vous avez le droit de demander l'accès à vos données, la correction de données inexactes ou la suppression de vos données sous réserve d'exigences légales et de sécurité.",
+  "processingConsent": "Traitement du consentement",
+  "pleaseWait": "Veuillez patienter pendant que nous traitons votre consentement...",
+  
+  "essentialPermissions": "Permissions essentielles",
+  "monitoringPermissions": "Permissions de surveillance", 
+  "advancedPermissions": "Permissions avancées",
+  "optionalPermissions": "Permissions optionnelles",
+  "checkingPermissions": "Vérification des permissions",
+  "noPermissionsToRequest": "Aucune permission à demander",
+  "permissionStep": "Étape {current} sur {total}",
+  "@permissionStep": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "whyThisPermission": "Pourquoi cette permission ?",
+  "requiredPermissionWarning": "Cette permission est requise pour que l'application fonctionne correctement",
+  "troubleshootingSteps": "Étapes de dépannage",
+  "needHelp": "Besoin d'aide ?",
+  "hideTroubleshooting": "Masquer l'aide",
+  "skipOptional": "Ignorer (Optionnel)",
+  
+  "accessibilityPermission": "Service d'accessibilité",
+  "accessibilityPermissionDescription": "Permet la surveillance de l'utilisation des applications et de la messagerie",
+  "accessibilityPermissionDetailed": "Le service d'accessibilité est requis pour surveiller l'utilisation des applications, détecter l'activité de messagerie et fournir une surveillance complète de l'appareil. Ceci est essentiel pour que la fonctionnalité de surveillance fonctionne correctement.",
+  
+  "usageStatsPermission": "Statistiques d'utilisation",
+  "usageStatsPermissionDescription": "Suit quelles applications sont utilisées et pendant combien de temps",
+  "usageStatsPermissionDetailed": "La permission des statistiques d'utilisation permet à l'application de suivre quelles applications sont ouvertes, combien de temps elles sont utilisées et quand elles sont fermées. Ces données sont essentielles pour une surveillance complète de l'appareil.",
+  
+  "deviceAdminPermission": "Administrateur de l'appareil",
+  "deviceAdminPermissionDescription": "Permet le contrôle à distance de l'appareil et la protection anti-manipulation",
+  "deviceAdminPermissionDetailed": "Les privilèges d'administrateur de l'appareil permettent le verrouillage/déverrouillage à distance, empêchent la désinstallation non autorisée et fournissent des fonctionnalités de sécurité améliorées. Ceci est optionnel mais recommandé pour une fonctionnalité complète.",
+  
+  "batteryOptimizationPermission": "Optimisation de la batterie",
+  "batteryOptimizationPermissionDescription": "Empêche l'application d'être arrêtée par la gestion de l'alimentation",
+  "batteryOptimizationPermissionDetailed": "Désactiver l'optimisation de la batterie garantit que l'application continue à fonctionner en arrière-plan pour une surveillance continue. Cela empêche la gestion de l'alimentation d'Android d'arrêter le service de surveillance.",
+  
+  "locationPermissionDetailed": "L'accès à la localisation est requis pour le suivi GPS en temps réel. L'application a besoin de la permission 'Autoriser tout le temps' pour suivre la localisation même lorsque l'application n'est pas activement utilisée.",
+  "phonePermissionDetailed": "La permission téléphone permet la surveillance des appels entrants et sortants, y compris la durée des appels, les informations de contact et l'état des appels. Ceci est essentiel pour les fonctionnalités de surveillance des appels.",
+  "smsPermissionDetailed": "La permission SMS permet la surveillance des messages texte, y compris la lecture des messages entrants et le suivi de l'activité de messagerie. Ceci est requis pour une surveillance complète des communications.",
+  "cameraPermissionDetailed": "L'accès à la caméra permet la capture de photos à distance lorsque demandé par l'appareil de surveillance. Cela active des fonctionnalités de sécurité comme la capture de photos d'urgence.",
+  "microphonePermissionDetailed": "L'accès au microphone permet les capacités d'enregistrement audio à distance lorsque demandé par l'appareil de surveillance. Cela supporte la surveillance d'urgence et les fonctionnalités de sécurité.",
+  "notificationPermissionDetailed": "La permission de notification permet à l'application d'afficher des alertes importantes, des mises à jour de statut et des notifications d'urgence. Cela garantit que vous restez informé du statut de surveillance.",
+  
+  "permissionSummary": "Résumé des permissions",
+  "permissionsConfigured": "Permissions configurées !",
+  "permissionsPartiallyConfigured": "Permissions partiellement configurées",
+  "permissionsGrantedSummary": "{granted} permissions accordées sur {total}",
+  "@permissionsGrantedSummary": {
+    "placeholders": {
+      "granted": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "permissionStatusDetails": "Détails du statut des permissions",
+  "granted": "Accordée",
+  "notGranted": "Non accordée",
+  "incompletePermissionsWarning": "Certaines permissions manquent",
+  "incompletePermissionsDescription": "L'application pourrait ne pas fonctionner entièrement sans toutes les permissions requises. Vous pouvez continuer avec une fonctionnalité limitée ou revenir pour accorder les permissions manquantes.",
+  "reviewPermissions": "Revoir les permissions",
+  "continueAnyway": "Continuer quand même",
+  "notificationPermission": "Notifications",
+  "notificationPermissionDescription": "Permet à l'application d'afficher des notifications",
+  
+  "mediaPermissions": "Permissions Média",
+  "systemPermissions": "Permissions Système",
+  
+  "whyDoWeNeedThis": "Pourquoi en avons-nous besoin ?",
+  "permissionExplanation": "{explanation}",
+  "@permissionExplanation": {
+    "placeholders": {
+      "explanation": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "locationAlwaysPermission": "Localisation en arrière-plan",
+  "locationAlwaysPermissionDescription": "Permet le suivi de localisation même quand l'app n'est pas ouverte",
+  "locationAlwaysPermissionExplanation": "L'accès à la localisation en arrière-plan est requis pour un suivi continu de la localisation. Cela garantit que l'appareil de surveillance peut toujours connaître votre position pour des raisons de sécurité.",
+  "locationPermissionExplanation": "L'accès à la localisation est requis pour le suivi GPS en temps réel. L'application a besoin de la permission de localisation pour suivre votre position à des fins de sécurité et de surveillance.",
+  "smsPermissionExplanation": "La permission SMS permet la surveillance des messages texte, y compris la lecture des messages entrants et le suivi de l'activité de messagerie. Ceci est requis pour une surveillance complète des communications.",
+  "phonePermissionExplanation": "La permission téléphone permet la surveillance des appels entrants et sortants, y compris la durée des appels, les informations de contact et l'état des appels. Ceci est essentiel pour les fonctionnalités de surveillance des appels.",
+  "usageStatsPermissionExplanation": "La permission de statistiques d'utilisation permet à l'application de suivre quelles applications sont ouvertes, combien de temps elles sont utilisées et quand elles sont fermées. Ces données sont essentielles pour une surveillance complète de l'appareil.",
+  "accessibilityServicePermissionExplanation": "Le service d'accessibilité est requis pour surveiller l'utilisation des applications, détecter l'activité de messagerie et fournir une surveillance complète de l'appareil. Ceci est essentiel pour que la fonctionnalité de surveillance fonctionne correctement.",
+  "cameraPermissionExplanation": "L'accès à la caméra permet la capture de photos à distance lorsque demandé par l'appareil de surveillance. Cela permet des fonctionnalités de sécurité comme la capture de photos d'urgence.",
+  "microphonePermissionExplanation": "L'accès au microphone permet des capacités d'enregistrement audio à distance lorsque demandé par l'appareil de surveillance. Cela prend en charge la surveillance d'urgence et les fonctionnalités de sécurité.",
+  "storagePermissionExplanation": "La permission de stockage permet l'accès aux fichiers et médias sur votre appareil. Ceci est nécessaire pour sauvegarder les données de surveillance et accéder au contenu de l'appareil lorsque requis.",
+  "deviceAdminPermissionExplanation": "Les privilèges d'administrateur d'appareil permettent le verrouillage/déverrouillage à distance, empêchent la désinstallation non autorisée et fournissent des fonctionnalités de sécurité améliorées. Ceci est optionnel mais recommandé pour une fonctionnalité complète.",
+  "batteryOptimizationPermissionExplanation": "Désactiver l'optimisation de la batterie garantit que l'application continue de fonctionner en arrière-plan pour une surveillance continue. Cela empêche la gestion d'énergie d'Android d'arrêter le service de surveillance.",
+  "notificationPermissionExplanation": "La permission de notification permet à l'application d'afficher des alertes importantes, des mises à jour de statut et des notifications d'urgence. Cela garantit que vous restez informé du statut de surveillance.",
+  
+  "optionalPermission": "Optionnelle",
+  "skip": "Ignorer",
+  "completeSetup": "Terminer la configuration",
+  "openSettings": "Ouvrir les paramètres",
+  "permissionDenied": "Permission refusée",
+  "permissionPermanentlyDeniedMessage": "Cette permission a été définitivement refusée. Vous pouvez l'accorder manuellement dans les paramètres de l'application.",
+  "incompleteSetup": "Configuration incomplète",
+  "requiredPermissionsMissing": "Certaines permissions requises manquent encore :",
+  
+  "p2pConnectionStatus": "Statut de Connexion P2P",
+  "addConnection": "Ajouter une Connexion",
+  "activeConnections": "Connexions Actives",
+  "noActiveConnections": "Aucune connexion active",
+  "p2pUninitialized": "Non initialisé",
+  "p2pInitializing": "Initialisation...",
+  "p2pReady": "Prêt pour les connexions",
+  "p2pConnectedDevices": "{count} appareils connectés",
+  "@p2pConnectedDevices": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "p2pConnecting": "Connexion en cours...",
+  "p2pConnected": "Connecté",
+  "p2pDisconnected": "Déconnecté",
+  "p2pError": "Erreur de connexion",
+  "connectToDevice": "Se connecter à l'appareil",
+  "deviceId": "ID d'appareil",
+  "enterDeviceId": "Entrez l'ID d'appareil",
+  "p2pConnectionInfo": "Entrez l'ID de l'appareil de surveillance auquel vous souhaitez vous connecter directement.",
+  "connect": "Connecter",
+  "connectingToDevice": "Connexion à l'appareil...",
+  "connectionSuccessful": "Connexion réussie",
+  "connectionFailed": "Connexion échouée",
+  "connectionError": "Erreur de connexion survenue",
+  "connectedAt": "Connecté à",
+  "sendCommand": "Envoyer une Commande",
+  "sendFile": "Envoyer un Fichier",
+  "disconnect": "Déconnecter",
+  "lockDevice": "Verrouiller l'appareil",
+  "unlockDevice": "Déverrouiller l'appareil",
+  "restartDevice": "Redémarrer l'appareil",
+  "capturePhoto": "Capturer une Photo",
+  "commandSent": "Commande envoyée avec succès",
+  "commandFailed": "Commande échouée",
+  "commandError": "Erreur lors de l'envoi de la commande",
+  "confirmDisconnection": "Confirmer la Déconnexion",
+  "disconnectDeviceConfirmation": "Êtes-vous sûr de vouloir vous déconnecter de {deviceName} ?",
+  "@disconnectDeviceConfirmation": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceDisconnected": "Appareil déconnecté",
+  "disconnectionFailed": "Déconnexion échouée",
+  
+  "invalidPairingCodeFormat": "Le code de jumelage doit contenir 6 chiffres",
+  "pairingFailed": "Échec du jumelage",
+  "networkError": "Erreur réseau",
+  
+  "logoutConfirmation": "Confirmation de déconnexion",
+  "logoutConfirmationMessage": "Êtes-vous sûr de vouloir vous déconnecter ? L'application sera fermée et devra être jumelée à nouveau.",
+  "logout": "Déconnexion"
 }

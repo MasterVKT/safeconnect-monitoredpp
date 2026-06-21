@@ -1,14 +1,17 @@
 package com.xpsafeconnect.monitored_app
 
 import android.Manifest
+import android.content.ContentResolver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.database.Cursor
-import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.provider.CallLog
+import android.util.Log
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
@@ -20,6 +23,10 @@ import io.flutter.plugin.common.MethodChannel.Result
 import java.util.*
 
 class CallsCollectorPlugin: FlutterPlugin, MethodCallHandler {
+    companion object {
+        private const val TAG = "CallsCollectorPlugin"
+    }
+
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
     private var telephonyManager: TelephonyManager? = null
@@ -49,8 +56,17 @@ class CallsCollectorPlugin: FlutterPlugin, MethodCallHandler {
             }
             "getNewCalls" -> {
                 val timestamp = call.argument<Long>("since") ?: 0
-                val calls = getNewCalls(timestamp)
-                result.success(calls)
+                val limit = call.argument<Int>("limit") ?: 500
+                try {
+                    result.success(getNewCalls(timestamp, limit))
+                } catch (e: Exception) {
+                    Log.e(TAG, "getNewCalls query failed", e)
+                    result.error(
+                            "CALL_LOG_QUERY_FAILED",
+                            "Unable to query call log",
+                            null
+                    )
+                }
             }
             else -> {
                 result.notImplemented()
@@ -135,7 +151,7 @@ class CallsCollectorPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private fun getNewCalls(since: Long): List<Map<String, Any>> {
+    private fun getNewCalls(since: Long, limit: Int = 500): List<Map<String, Any>> {
         val result = ArrayList<Map<String, Any>>()
         if (!checkCallLogPermissions()) {
             return result
@@ -150,22 +166,44 @@ class CallsCollectorPlugin: FlutterPlugin, MethodCallHandler {
                 CallLog.Calls.DURATION,
                 CallLog.Calls.CACHED_NAME
         )
-        val selection = "${CallLog.Calls.DATE} > ?"
-        val selectionArgs = arrayOf(since.toString())
-        val sortOrder = "${CallLog.Calls.DATE} DESC"
+        val safeLimit = limit.coerceIn(1, 1000)
 
         var cursor: Cursor? = null
         try {
-            cursor = context.contentResolver.query(
+            cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val args = Bundle().apply {
+                    putString(
+                            ContentResolver.QUERY_ARG_SQL_SELECTION,
+                            "${CallLog.Calls.DATE} > ?"
+                    )
+                    putStringArray(
+                            ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS,
+                            arrayOf(since.toString())
+                    )
+                    putStringArray(
+                            ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                            arrayOf(CallLog.Calls.DATE)
+                    )
+                    putInt(
+                            ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                            ContentResolver.QUERY_SORT_DIRECTION_ASCENDING
+                    )
+                    putInt(ContentResolver.QUERY_ARG_LIMIT, safeLimit)
+                }
+                context.contentResolver.query(uri, projection, args, null)
+            } else {
+                context.contentResolver.query(
                     uri,
                     projection,
-                    selection,
-                    selectionArgs,
-                    sortOrder
-            )
+                    "${CallLog.Calls.DATE} > ?",
+                    arrayOf(since.toString()),
+                    "${CallLog.Calls.DATE} ASC"
+                )
+            }
 
             cursor?.let {
-                while (it.moveToNext()) {
+                var count = 0
+                while (it.moveToNext() && count < safeLimit) {
                     val callData = mapOf(
                             "number" to (it.getString(it.getColumnIndexOrThrow(CallLog.Calls.NUMBER)) ?: ""),
                             "type" to it.getInt(it.getColumnIndexOrThrow(CallLog.Calls.TYPE)),
@@ -176,10 +214,9 @@ class CallsCollectorPlugin: FlutterPlugin, MethodCallHandler {
                             "is_conference" to false // Not available in basic API
                     )
                     result.add(callData)
+                    count++
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         } finally {
             cursor?.close()
         }

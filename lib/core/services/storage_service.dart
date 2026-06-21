@@ -7,6 +7,10 @@ class StorageService {
 
   StorageService(this._preferences, this._secureStorage);
 
+  Future<void> reloadPreferences() async {
+    await _preferences.reload();
+  }
+
   // Méthodes pour le stockage standard (SharedPreferences)
 
   Future<bool> setBool(String key, bool value) async {
@@ -81,5 +85,28 @@ class StorageService {
 
   Future<bool> containsSecureKey(String key) async {
     return await _secureStorage.containsKey(key: key);
+  }
+
+  // Alias methods for compatibility
+  Future<String?> readSecure(String key) async {
+    return await read(key);
+  }
+
+  Future<void> writeSecure(String key, String value) async {
+    await write(key, value);
+  }
+
+  Future<void> clearCache() async {
+    await clear();
+    await deleteAll();
+  }
+
+  // Méthodes pour la compatibilité avec les collectors et services
+  Future<String?> getSecureData(String key) async {
+    return await read(key);
+  }
+
+  Future<void> setSecureData(String key, String value) async {
+    await write(key, value);
   }
 }

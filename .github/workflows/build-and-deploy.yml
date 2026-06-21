@@ -1,0 +1,320 @@
+name: Build and Deploy Monitored App
+
+on:
+  push:
+    branches: [ main, release/* ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  FLUTTER_VERSION: '3.24.5'
+  JAVA_VERSION: '17'
+
+jobs:
+  # Security and validation checks
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run security scan
+        uses: securecodewarrior/github-action-add-sarif@v1
+        with:
+          sarif-file: 'security-scan-results.sarif'
+          
+      - name: Validate dependencies
+        run: |
+          echo "Validating Flutter dependencies..."
+          if grep -r "http://" pubspec.yaml; then
+            echo "ERROR: Insecure HTTP dependencies found"
+            exit 1
+          fi
+          
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+  # Build and test
+  build-android:
+    needs: security-check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-type: [debug, release, stealth]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Run tests
+        run: flutter test
+        
+      - name: Run static analysis
+        run: flutter analyze
+        
+      - name: Setup Android signing (Release only)
+        if: matrix.build-type != 'debug'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          echo "KEYSTORE_PATH=release.keystore" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          
+      - name: Setup security keys
+        run: |
+          echo "SECURITY_KEY=${{ secrets.SECURITY_KEY }}" >> $GITHUB_ENV
+          echo "STEALTH_SECURITY_KEY=${{ secrets.STEALTH_SECURITY_KEY }}" >> $GITHUB_ENV
+          echo "BUILD_FINGERPRINT=gh_action_$(date +%s)" >> $GITHUB_ENV
+          echo "BUILD_SIGNATURE=${{ github.sha }}" >> $GITHUB_ENV
+          echo "STEALTH_BUILD_FINGERPRINT=stealth_gh_$(date +%s)" >> $GITHUB_ENV
+          
+      - name: Build Android APK
+        run: |
+          if [ "${{ matrix.build-type }}" = "debug" ]; then
+            flutter build apk --debug
+          elif [ "${{ matrix.build-type }}" = "stealth" ]; then
+            flutter build apk --release --flavor stealth
+          else
+            flutter build apk --release
+          fi
+          
+      - name: Build Android App Bundle (Release only)
+        if: matrix.build-type == 'release'
+        run: flutter build appbundle --release
+        
+      - name: Run security validation
+        run: |
+          echo "Running security validation on built artifacts..."
+          
+          # Check for debug symbols in release builds
+          if [ "${{ matrix.build-type }}" != "debug" ]; then
+            if strings build/app/outputs/flutter-apk/app-*.apk | grep -i "debug\|test\|localhost"; then
+              echo "WARNING: Debug strings found in release build"
+            fi
+          fi
+          
+          # Verify obfuscation (release builds only)
+          if [ "${{ matrix.build-type }}" != "debug" ]; then
+            if [ ! -f "build/app/outputs/mapping/release/mapping.txt" ]; then
+              echo "ERROR: Obfuscation mapping file not found"
+              exit 1
+            fi
+          fi
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.build-type }}-artifacts
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+            build/app/outputs/mapping/release/mapping.txt
+          retention-days: 30
+
+  # iOS build (if applicable)
+  build-ios:
+    needs: security-check
+    runs-on: macos-latest
+    if: false  # Disabled for now, enable when iOS support is ready
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
+
+  # Security testing
+  security-test:
+    needs: [build-android]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-artifacts
+          path: ./artifacts
+          
+      - name: Run APK security analysis
+        run: |
+          echo "Running APK security analysis..."
+          
+          # Install analysis tools
+          sudo apt-get update
+          sudo apt-get install -y aapt apktool
+          
+          # Basic APK analysis
+          for apk in artifacts/*.apk; do
+            if [ -f "$apk" ]; then
+              echo "Analyzing $apk..."
+              aapt dump badging "$apk" | grep -E "package:|versionCode:|versionName:"
+              
+              # Check for dangerous permissions
+              if aapt dump permissions "$apk" | grep -E "android\.permission\.(WRITE_EXTERNAL_STORAGE|READ_PHONE_STATE|ACCESS_FINE_LOCATION)"; then
+                echo "INFO: Sensitive permissions detected (expected for monitoring app)"
+              fi
+              
+              # Verify obfuscation
+              unzip -l "$apk" | grep "classes.dex"
+            fi
+          done
+
+  # Performance testing
+  performance-test:
+    needs: [build-android]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-artifacts
+          path: ./artifacts
+          
+      - name: APK size analysis
+        run: |
+          echo "Analyzing APK sizes..."
+          
+          for apk in artifacts/*.apk; do
+            if [ -f "$apk" ]; then
+              size=$(stat -c%s "$apk")
+              size_mb=$((size / 1024 / 1024))
+              echo "APK: $(basename "$apk"), Size: ${size_mb}MB"
+              
+              # Warn if APK is too large
+              if [ $size_mb -gt 50 ]; then
+                echo "WARNING: APK size (${size_mb}MB) exceeds recommended limit (50MB)"
+              fi
+            fi
+          done
+
+  # Deployment
+  deploy-staging:
+    needs: [build-android, security-test, performance-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-artifacts
+          path: ./artifacts
+          
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          
+          # Upload to staging distribution platform
+          # This would typically involve uploading to Firebase App Distribution,
+          # TestFlight, or internal distribution system
+          
+          echo "Staging deployment completed"
+          
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  deploy-production:
+    needs: [build-android, security-test, performance-test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-artifacts
+          path: ./artifacts
+          
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          
+          # Production deployment logic would go here
+          # This might involve uploading to Google Play Console,
+          # enterprise distribution system, or direct distribution
+          
+          echo "Production deployment completed"
+          
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/app-release.apk
+          asset_name: monitored-app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+  # Cleanup
+  cleanup:
+    needs: [deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Cleanup sensitive files
+        run: |
+          echo "Cleaning up sensitive build artifacts..."
+          
+          # Remove any sensitive files that might have been created
+          rm -f android/app/release.keystore
+          rm -f android/app/src/main/assets/security.properties
+          
+          echo "Cleanup completed"

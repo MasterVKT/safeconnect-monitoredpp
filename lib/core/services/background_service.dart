@@ -5,20 +5,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:monitored_app/app/locator.dart';
 import 'package:monitored_app/core/services/battery_monitor_service.dart';
+import 'package:monitored_app/core/services/collection_ownership_service.dart';
 import 'package:monitored_app/core/services/websocket_service.dart';
 import 'package:monitored_app/core/services/data_collector_service.dart';
-import 'package:monitored_app/core/services/storage_service.dart';
+import 'package:monitored_app/core/services/security_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BackgroundService {
   static const String _isolateName = 'safeconnect_background_isolate';
   static SendPort? _uiSendPort;
 
-  final MethodChannel _channel = const MethodChannel('com.xpsafeconnect.monitored_app/background');
-  final StorageService _storageService = locator<StorageService>();
+  final MethodChannel _channel =
+      const MethodChannel('com.xpsafeconnect.monitored_app/background');
   final WebSocketService _webSocketService = locator<WebSocketService>();
-  final BatteryMonitorService _batteryMonitorService = locator<BatteryMonitorService>();
-  final DataCollectorService _dataCollectorService = locator<DataCollectorService>();
+  final BatteryMonitorService _batteryMonitorService =
+      locator<BatteryMonitorService>();
+  final DataCollectorService _dataCollectorService =
+      locator<DataCollectorService>();
+  final SecurityService _securityService = locator<SecurityService>();
 
   // Singleton pattern
   static final BackgroundService _instance = BackgroundService._internal();
@@ -45,12 +49,28 @@ class BackgroundService {
       }
 
       // Démarrer le service natif
+      if (!_webSocketService.isConnected) {
+        await _webSocketService.connect();
+      }
+      _batteryMonitorService.startMonitoring();
+      await _dataCollectorService.initialize();
+      final ownsCollection = await _dataCollectorService.startCollectors(
+        owner: CollectionLeaseOwner.mainIsolate,
+      );
+      if (!ownsCollection) {
+        debugPrint(
+            'Main isolate did not acquire collection lease; background owner remains active');
+      }
+
       final result = await _channel.invokeMethod<bool>('startService', {
         'callback_handle': callbackHandle,
       });
 
       if (result != true) {
         debugPrint('Failed to start background service');
+        await _dataCollectorService.stopCollectors(
+          owner: CollectionLeaseOwner.mainIsolate,
+        );
         return;
       }
 
@@ -59,19 +79,17 @@ class BackgroundService {
 
       // Configurer le port pour la communication entre isolates
       final ReceivePort receivePort = ReceivePort();
-      if (!IsolateNameServer.registerPortWithName(receivePort.sendPort, _isolateName)) {
+      if (!IsolateNameServer.registerPortWithName(
+          receivePort.sendPort, _isolateName)) {
         IsolateNameServer.removePortNameMapping(_isolateName);
-        IsolateNameServer.registerPortWithName(receivePort.sendPort, _isolateName);
+        IsolateNameServer.registerPortWithName(
+            receivePort.sendPort, _isolateName);
       }
 
       // Écouter les messages de l'isolate d'arrière-plan
       receivePort.listen(_handleMessage);
 
-      // Démarrer les services de collecte de données
-      await _webSocketService.connect();
-      _batteryMonitorService.startMonitoring();
-      await _dataCollectorService.initialize();
-      await _dataCollectorService.startCollectors();
+      await _securityService.startPeriodicMonitoring();
 
       // Démarrer le timer pour les heartbeats
       _startHeartbeatTimer();
@@ -91,7 +109,9 @@ class BackgroundService {
       _stopHeartbeatTimer();
 
       // Arrêter les services de collecte de données
-      await _dataCollectorService.stopCollectors();
+      await _dataCollectorService.stopCollectors(
+        owner: CollectionLeaseOwner.mainIsolate,
+      );
       _batteryMonitorService.stopMonitoring();
       await _webSocketService.disconnect();
 
@@ -128,6 +148,12 @@ class BackgroundService {
         case 'heartbeat_response':
           // Service is still alive, do nothing
           break;
+        case 'security_status':
+          _handleSecurityStatus(message['data']);
+          break;
+        case 'request_security_scan':
+          _handleSecurityScanRequest();
+          break;
         default:
           debugPrint('Unknown message type: $type');
       }
@@ -145,10 +171,57 @@ class BackgroundService {
     _dataCollectorService.queueForSync(dataType, items);
   }
 
+  void _handleSecurityStatus(Map<String, dynamic> data) {
+    // Handle security status updates from isolate
+    final threatLevel = data['threat_level'];
+    final threatsDetected = data['threats_detected'] ?? 0;
+
+    debugPrint(
+        'Security status update: $threatLevel threat level, $threatsDetected threats');
+
+    // Forward security status to WebSocket for server notification
+    if (threatLevel == 'high' || threatLevel == 'critical') {
+      _webSocketService.sendStatusUpdate(
+        batteryLevel: data['battery_level'] ?? 50,
+        isCharging: data['is_charging'] ?? false,
+      );
+    }
+  }
+
+  void _handleSecurityScanRequest() async {
+    try {
+      debugPrint('Performing security scan on request');
+      await _securityService.performSecurityScan();
+
+      // Send scan results back to background isolate
+      final status = await _securityService.getProtectionStatus();
+      sendMessageToBackground({
+        'type': 'security_scan_result',
+        'data': status,
+      });
+    } catch (e) {
+      debugPrint('Error performing security scan: $e');
+    }
+  }
+
   void _startHeartbeatTimer() {
     _heartbeatTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
       _sendHeartbeat();
+
+      // Perform maintenance optimization every hour (12 cycles)
+      if (timer.tick % 12 == 0) {
+        _performMaintenanceOptimization();
+      }
     });
+  }
+
+  void _performMaintenanceOptimization() async {
+    try {
+      await _dataCollectorService.performMaintenanceOptimization();
+      debugPrint('Background maintenance optimization completed');
+    } catch (e) {
+      debugPrint('Error performing maintenance optimization: $e');
+    }
   }
 
   void _stopHeartbeatTimer() {
@@ -178,7 +251,8 @@ class BackgroundService {
     const maxAttempts = 10;
 
     while (attempts < maxAttempts) {
-      final port = IsolateNameServer.lookupPortByName('background_isolate_receive_port');
+      final port =
+          IsolateNameServer.lookupPortByName('background_isolate_receive_port');
       if (port != null) {
         _backgroundSendPort = port;
         return;

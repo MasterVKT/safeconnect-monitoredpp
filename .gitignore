@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Legacy rules (archived, do not load)
+docs/legacy/
+
 # Symbolication related
 app.*.symbols
 
@@ -41,3 +44,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Added by code-review-graph
+.code-review-graph/
+
+# Repo-Map cache (auto-généré)
+.claude/.repomap_cache.md
+.claude/.repomap_cache.sqlite
+.claude/.repomap_sessions/
+
+# Heap dumps and OS artifacts
+*.hprof
+nul

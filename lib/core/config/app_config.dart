@@ -17,6 +17,18 @@ class AppConfig {
   String _notificationMode = 'VISIBLE'; // VISIBLE, MINIMIZED, HIDDEN
   bool _autoStartEnabled = true;
 
+  String _resolveApiBaseUrl(String environment) {
+    switch (environment) {
+      case 'dev':
+        return '${AppConstants.devBaseUrl}/api/v1';
+      case 'staging':
+        return '${AppConstants.stagingBaseUrl}/api/v1';
+      case 'prod':
+      default:
+        return '${AppConstants.prodBaseUrl}/api/v1';
+    }
+  }
+
   // Getters
   bool get isInitialized => _initialized;
   String get environment => _environment;
@@ -41,13 +53,7 @@ class AppConfig {
           prefs.getString('environment') ?? (kReleaseMode ? 'prod' : 'dev');
 
       // Définir l'URL de base selon l'environnement
-      if (_environment == 'dev') {
-        _apiBaseUrl = '${AppConstants.baseUrl}/api/v1';
-      } else if (_environment == 'staging') {
-        _apiBaseUrl = 'https://staging-api.safeconnect.com/api/v1';
-      } else {
-        _apiBaseUrl = AppConstants.apiV1;
-      }
+      _apiBaseUrl = _resolveApiBaseUrl(_environment);
 
       // Paramètres d'analyse
       _analyticsEnabled = prefs.getBool('analytics_enabled') ?? !kDebugMode;
@@ -65,7 +71,7 @@ class AppConfig {
       debugPrint('Error initializing AppConfig: $e');
       // Charger les valeurs par défaut en cas d'erreur
       _environment = kReleaseMode ? 'prod' : 'dev';
-      _apiBaseUrl = AppConstants.apiV1;
+      _apiBaseUrl = _resolveApiBaseUrl(_environment);
       _analyticsEnabled = !kDebugMode;
       _displayMode = 'NORMAL';
       _notificationMode = 'VISIBLE';
@@ -146,7 +152,7 @@ class AppConfig {
   /// Réinitialise la configuration aux valeurs par défaut
   Future<void> resetToDefaults() async {
     _environment = kReleaseMode ? 'prod' : 'dev';
-    _apiBaseUrl = AppConstants.apiV1;
+    _apiBaseUrl = _resolveApiBaseUrl(_environment);
     _analyticsEnabled = !kDebugMode;
     _displayMode = 'NORMAL';
     _notificationMode = 'VISIBLE';

@@ -53,7 +53,7 @@ dependencies:
   firebase_crashlytics: ^4.3.4
   path_provider: ^2.1.5
   permission_handler: ^11.4.0
-  intl: ^0.19.0
+  intl: ^0.20.2
   battery_plus: ^4.1.0
   geolocator: ^10.1.0
   device_info_plus: ^9.1.1
@@ -62,20 +62,41 @@ dependencies:
   flutter_local_notifications: ^19.1.0
   package_info_plus: ^4.1.0
   connectivity_plus: ^4.0.2
+  drift: ^2.14.0
+  sqlcipher_flutter_libs: ^0.6.0
+  crypto: ^3.0.3
+  path: ^1.8.3
+  signature: ^6.3.0
+  flutter_webrtc: ^1.0.0
+  sdp_transform: ^0.3.2
+  local_auth: ^2.3.0
+  # Additional packages for enhanced monitoring functionality
+  workmanager: ^0.9.0
+  camera: 0.11.2+1
+  image: ^4.1.7
+  url_launcher: ^6.2.4
+  sensors_plus: ^6.0.1
+  network_info_plus: ^6.0.0
+  android_intent_plus: ^5.1.0
+  mobile_scanner: ^7.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_lints: ^4.0.0
   build_runner: ^2.4.5
   json_serializable: ^6.7.1
+  drift_dev: ^2.14.0
+  mockito: ^5.4.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter_intl:
-  enabled: true
+  enabled: false
   main_locale: fr
   arb_dir: lib/l10n
   output_dir: lib/generated/l10n

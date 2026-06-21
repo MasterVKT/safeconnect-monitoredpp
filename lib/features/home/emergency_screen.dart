@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:monitored_app/app/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/app/locator.dart';
+import 'package:monitored_app/core/services/emergency_service.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -14,17 +16,35 @@ class EmergencyScreen extends StatefulWidget {
 class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
+  late EmergencyService _emergencyService;
   
-  bool _emergencyActivated = false;
+  EmergencyState _emergencyState = EmergencyState.inactive;
   bool _isLoading = false;
   
   // Countdown for emergency activation
   int _countdownSeconds = 5;
   Timer? _countdownTimer;
+  StreamSubscription<EmergencyState>? _stateSubscription;
   
   @override
   void initState() {
     super.initState();
+    
+    // Initialize emergency service
+    _emergencyService = locator<EmergencyService>();
+    _emergencyState = _emergencyService.currentState;
+    
+    // Listen to emergency state changes
+    _stateSubscription = _emergencyService.stateStream.listen((state) {
+      if (mounted) {
+        setState(() {
+          _emergencyState = state;
+          if (state == EmergencyState.active) {
+            _isLoading = false;
+          }
+        });
+      }
+    });
     
     // Setup the pulse animation
     _animationController = AnimationController(
@@ -46,6 +66,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
   void dispose() {
     _animationController.dispose();
     _countdownTimer?.cancel();
+    _stateSubscription?.cancel();
     super.dispose();
   }
   
@@ -69,11 +90,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
   
   void _cancelEmergency() {
     _countdownTimer?.cancel();
-    setState(() {
-      _isLoading = false;
-      _emergencyActivated = false;
-      _countdownSeconds = 5;
-    });
+    
+    if (_emergencyState == EmergencyState.active) {
+      // Deactivate emergency mode
+      _emergencyService.deactivateEmergency();
+    } else {
+      // Cancel countdown
+      setState(() {
+        _isLoading = false;
+        _countdownSeconds = 5;
+      });
+    }
   }
   
   Future<void> _activateEmergency() async {
@@ -82,23 +109,35 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
     });
     
     try {
-      // TODO: Implement actual emergency activation with the API
-      // For now, we'll simulate a delay
-      await Future.delayed(const Duration(seconds: 2));
+      final success = await _emergencyService.activateEmergency(
+        triggerType: EmergencyTriggerType.manual,
+        triggerData: {
+          'activation_method': 'user_interface',
+          'screen': 'emergency_screen',
+        },
+      );
       
-      setState(() {
-        _emergencyActivated = true;
-        _isLoading = false;
-      });
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to activate emergency mode'),
+            backgroundColor: AppTheme.alertColor,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      // Success state will be handled by the stream listener
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
       
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: AppTheme.alertColor,
           ),
         );
@@ -110,15 +149,17 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
+    final isEmergencyActive = _emergencyState == EmergencyState.active;
+    
     return Scaffold(
-      backgroundColor: _emergencyActivated 
-          ? AppTheme.emergencyColor.withOpacity(0.05)
+      backgroundColor: isEmergencyActive 
+          ? AppTheme.emergencyColor.withValues(alpha: 0.05)
           : null,
       appBar: AppBar(
-        title: Text(_emergencyActivated 
+        title: Text(isEmergencyActive 
             ? l10n.emergencyModeActive
             : l10n.emergencyMode),
-        backgroundColor: _emergencyActivated 
+        backgroundColor: isEmergencyActive 
             ? AppTheme.emergencyColor
             : null,
       ),
@@ -127,7 +168,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (_emergencyActivated)
+              if (isEmergencyActive)
                 _buildEmergencyActiveUI(context)
               else if (_isLoading && _countdownSeconds > 0)
                 _buildCountdownUI(context)
@@ -166,7 +207,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                     width: 150,
                     height: 150,
                     decoration: BoxDecoration(
-                      color: AppTheme.emergencyColor.withOpacity(0.1),
+                      color: AppTheme.emergencyColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: AppTheme.emergencyColor,
@@ -230,7 +271,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
           width: 150,
           height: 150,
           decoration: BoxDecoration(
-            color: AppTheme.emergencyColor.withOpacity(0.2),
+            color: AppTheme.emergencyColor.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -284,7 +325,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.emergencyColor.withOpacity(0.3),
+                  color: AppTheme.emergencyColor.withValues(alpha: 0.3),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
@@ -331,33 +372,62 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                 context,
                 Icons.camera_alt,
                 l10n.takePhoto,
-                () {
-                  // TODO: Implement take photo
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.featureComingSoon)),
-                  );
+                () async {
+                  final result = await _emergencyService.captureEmergencyPhoto();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result != null 
+                          ? 'Photo captured successfully'
+                          : 'Failed to capture photo'),
+                        backgroundColor: result != null 
+                          ? AppTheme.secondaryColor 
+                          : AppTheme.alertColor,
+                      ),
+                    );
+                  }
                 },
               ),
               _buildEmergencyAction(
                 context,
                 Icons.mic,
                 l10n.recordAudio,
-                () {
-                  // TODO: Implement record audio
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.featureComingSoon)),
-                  );
+                () async {
+                  final result = await _emergencyService.recordEmergencyAudio(durationSeconds: 30);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result != null 
+                          ? 'Audio recorded successfully'
+                          : 'Failed to record audio'),
+                        backgroundColor: result != null 
+                          ? AppTheme.secondaryColor 
+                          : AppTheme.alertColor,
+                      ),
+                    );
+                  }
                 },
               ),
               _buildEmergencyAction(
                 context,
                 Icons.message,
                 l10n.sendMessage,
-                () {
-                  // TODO: Implement send message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.featureComingSoon)),
+                () async {
+                  final result = await _emergencyService.sendEmergencyMessage(
+                    'Emergency message sent from device',
                   );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(result 
+                          ? 'Message sent successfully'
+                          : 'Failed to send message'),
+                        backgroundColor: result 
+                          ? AppTheme.secondaryColor 
+                          : AppTheme.alertColor,
+                      ),
+                    );
+                  }
                 },
               ),
             ],
@@ -395,7 +465,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.emergencyColor.withOpacity(0.3)),
+          border: Border.all(color: AppTheme.emergencyColor.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [

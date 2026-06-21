@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "code-review-graph": {
+      "command": "h:\\Projects\\XP SafeConnect\\flutter_apps\\monitored_app\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-m",
+        "code_review_graph",
+        "serve"
+      ],
+      "cwd": "H:\\Projects\\XP SafeConnect\\flutter_apps\\monitored_app"
+    }
+  }
+}

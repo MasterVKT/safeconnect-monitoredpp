@@ -17,6 +17,8 @@ class RetryMechanism {
   
   bool get canRetry => _currentRetry < _maxRetries;
   
+  int get currentAttempt => _currentRetry;
+  
   Duration get nextDelay {
     if (_currentRetry >= _maxRetries) {
       throw Exception('Maximum retries exceeded');

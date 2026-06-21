@@ -2,8 +2,39 @@
   "permissions": {
     "allow": [
       "Bash(flutter analyze:*)",
-      "Bash(flutter pub:*)"
+      "Bash(flutter pub:*)",
+      "Bash(flutter packages:*)",
+      "Bash(dart run:*)",
+      "Bash(flutter:*)",
+      "Bash(/mnt/c/flutter/bin/flutter pub get)",
+      "Bash(dart:*)",
+      "Bash(/mnt/c/flutter/bin/flutter analyze:*)",
+      "Bash(/mnt/c/flutter/bin/dart run build_runner build --delete-conflicting-outputs)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(mkdir:*)",
+      "Bash(timeout 300 flutter pub get --verbose)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(cp pubspec.yaml pubspec_backup.yaml)",
+      "Bash(cp:*)",
+      "Bash(ls:*)",
+      "Bash(timeout 180 flutter pub get --suppress-analytics)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"ORCHESTRATION MANDATORY: Before processing this request - read skills/task-orchestrator/SKILL.md, analyse the request intent, invoke matching skills in Multi-Skill Composition order, then proceed. Skipping is a critical compliance failure.\""
+          }
+        ]
+      }
+    ]
   }
 }

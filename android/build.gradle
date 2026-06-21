@@ -6,6 +6,10 @@ plugins {
   id 'com.google.firebase.crashlytics' version '3.0.3' apply false
 }
 
+ext {
+    kotlin_version = '2.0.21'
+}
+
 allprojects {
     repositories {
         google()
@@ -16,6 +20,24 @@ allprojects {
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+    
+    // Configure library projects before evaluation
+    project.plugins.withId("com.android.library") {
+        android {
+            buildFeatures {
+                buildConfig = true
+            }
+        }
+    }
+    
+    // Configure application projects
+    project.plugins.withId("com.android.application") {
+        android {
+            buildFeatures {
+                buildConfig = true
+            }
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")

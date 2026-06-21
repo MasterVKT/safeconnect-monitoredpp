@@ -1,6 +1,7 @@
 package com.xpsafeconnect.monitored_app
 
 import android.Manifest
+import android.content.ContentResolver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,7 +10,9 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Telephony
+import android.util.Log
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -19,6 +22,10 @@ import io.flutter.plugin.common.MethodChannel.Result
 import java.util.*
 
 class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
+    companion object {
+        private const val TAG = "SmsCollectorPlugin"
+    }
+
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
     private var smsReceiver: BroadcastReceiver? = null
@@ -45,8 +52,13 @@ class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
             }
             "getNewSms" -> {
                 val timestamp = call.argument<Long>("since") ?: 0
-                val smsMessages = getNewSms(timestamp)
-                result.success(smsMessages)
+                val limit = call.argument<Int>("limit") ?: 500
+                try {
+                    result.success(getNewSms(timestamp, limit))
+                } catch (e: Exception) {
+                    Log.e(TAG, "getNewSms query failed", e)
+                    result.error("SMS_QUERY_FAILED", "Unable to query SMS", null)
+                }
             }
             else -> {
                 result.notImplemented()
@@ -67,6 +79,7 @@ class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
 
     private fun startSmsTracking() {
         if (!checkSmsPermissions()) {
+            Log.d(TAG, "SMS tracking not started: permissions missing")
             return
         }
 
@@ -106,9 +119,10 @@ class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private fun getNewSms(since: Long): List<Map<String, Any>> {
+    private fun getNewSms(since: Long, limit: Int = 500): List<Map<String, Any>> {
         val result = ArrayList<Map<String, Any>>()
         if (!checkSmsPermissions()) {
+            Log.d(TAG, "getNewSms skipped: permissions missing")
             return result
         }
 
@@ -122,22 +136,45 @@ class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
                 Telephony.Sms.READ,
                 Telephony.Sms.THREAD_ID
         )
-        val selection = "${Telephony.Sms.DATE} > ?"
-        val selectionArgs = arrayOf(since.toString())
-        val sortOrder = "${Telephony.Sms.DATE} DESC"
+        val safeLimit = limit.coerceIn(1, 1000)
 
         var cursor: Cursor? = null
         try {
-            cursor = context.contentResolver.query(
+            cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val args = Bundle().apply {
+                    putString(
+                            ContentResolver.QUERY_ARG_SQL_SELECTION,
+                            "${Telephony.Sms.DATE} > ?"
+                    )
+                    putStringArray(
+                            ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS,
+                            arrayOf(since.toString())
+                    )
+                    putStringArray(
+                            ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                            arrayOf(Telephony.Sms.DATE)
+                    )
+                    putInt(
+                            ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                            ContentResolver.QUERY_SORT_DIRECTION_ASCENDING
+                    )
+                    putInt(ContentResolver.QUERY_ARG_LIMIT, safeLimit)
+                }
+                context.contentResolver.query(uri, projection, args, null)
+            } else {
+                context.contentResolver.query(
                     uri,
                     projection,
-                    selection,
-                    selectionArgs,
-                    sortOrder
-            )
+                    "${Telephony.Sms.DATE} > ?",
+                    arrayOf(since.toString()),
+                    "${Telephony.Sms.DATE} ASC"
+                )
+            }
+            Log.d(TAG, "getNewSms query returned ${cursor?.count ?: 0} rows since $since")
 
             cursor?.let {
-                while (it.moveToNext()) {
+                var count = 0
+                while (it.moveToNext() && count < safeLimit) {
                     val type = it.getInt(it.getColumnIndexOrThrow(Telephony.Sms.TYPE))
                     val address = it.getString(it.getColumnIndexOrThrow(Telephony.Sms.ADDRESS))
                     
@@ -162,10 +199,9 @@ class SmsCollectorPlugin: FlutterPlugin, MethodCallHandler {
                             "thread_id" to it.getLong(it.getColumnIndexOrThrow(Telephony.Sms.THREAD_ID))
                     )
                     result.add(smsData)
+                    count++
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         } finally {
             cursor?.close()
         }

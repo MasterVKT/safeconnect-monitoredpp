@@ -316,8 +316,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                             height: 48,
                             decoration: BoxDecoration(
                               color: _isConnected
-                                  ? AppTheme.secondaryColor.withOpacity(0.1)
-                                  : AppTheme.alertColor.withOpacity(0.1),
+                                  ? AppTheme.secondaryColor.withValues(alpha: 0.1)
+                                  : AppTheme.alertColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -528,7 +528,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     width: 150,
                     height: 150,
                     decoration: BoxDecoration(
-                      color: AppTheme.emergencyColor.withOpacity(0.1),
+                      color: AppTheme.emergencyColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: AppTheme.emergencyColor,
@@ -595,7 +595,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         width: 120,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.1),
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(

@@ -84,7 +84,7 @@ class AppTheme {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: primaryColor,
-        minimumSize: const Size(double.infinity, 48),
+        minimumSize: const Size(64, 48),
         padding: const EdgeInsets.symmetric(horizontal: 16),
       ),
     ),
@@ -109,7 +109,7 @@ class AppTheme {
       filled: true,
       fillColor: Colors.white,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -178,7 +178,7 @@ class AppTheme {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: primaryColor,
-        minimumSize: const Size(double.infinity, 48),
+        minimumSize: const Size(64, 48),
         padding: const EdgeInsets.symmetric(horizontal: 16),
       ),
     ),
@@ -203,7 +203,7 @@ class AppTheme {
       filled: true,
       fillColor: const Color(0xFF2A2A2A),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -221,16 +221,16 @@ class AppTheme {
   // Obtenir le style d'un badge d'état
   static BoxDecoration getStatusPillDecoration(Color color) {
     return BoxDecoration(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: color.withOpacity(0.5)),
+      border: Border.all(color: color.withValues(alpha: 0.5)),
     );
   }
   
   // Obtenir le style d'un bouton d'action
   static BoxDecoration getActionButtonDecoration() {
     return BoxDecoration(
-      color: primaryLightColor.withOpacity(0.2),
+      color: primaryLightColor.withValues(alpha: 0.2),
       borderRadius: BorderRadius.circular(8),
     );
   }

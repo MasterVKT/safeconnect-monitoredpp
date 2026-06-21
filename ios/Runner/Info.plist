@@ -45,5 +45,64 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Background Modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-app-refresh</string>
+		<string>background-processing</string>
+		<string>location</string>
+		<string>remote-notification</string>
+		<string>background-fetch</string>
+	</array>
+	
+	<!-- Background Task Identifiers -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.xpsafeconnect.monitored-app.refresh</string>
+		<string>com.xpsafeconnect.monitored-app.processing</string>
+	</array>
+	
+	<!-- Location Permissions -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access for safety monitoring and emergency response.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs background location access for continuous safety monitoring.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access for safety monitoring and emergency response.</string>
+	
+	<!-- Face ID Permission -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID for secure authentication to access monitoring controls.</string>
+	
+	<!-- Camera Permission -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access for emergency photo capture and safety monitoring.</string>
+	
+	<!-- Microphone Permission -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access for emergency audio recording and safety monitoring.</string>
+	
+	<!-- Photo Library Permission -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access for safety monitoring and emergency response.</string>
+	
+	<!-- Local Network Permission -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs local network access for secure communication with monitoring systems.</string>
+	
+	<!-- Prevent app from appearing in usage statistics -->
+	<key>SBAppUsageReportingEnabled</key>
+	<false/>
+	
+	<!-- Allow app to run in background -->
+	<key>UIBackgroundRefreshEnable</key>
+	<true/>
+	
+	<!-- Required device capabilities -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>location-services</string>
+	</array>
 </dict>
 </plist>

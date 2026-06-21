@@ -1,0 +1,61 @@
+# Règles AntiGravity AI - Monitored App (XP SafeConnect)
+
+## 0. Détection d'erreurs et Rapports Backend (Spécifique AntiGravity)
+Lorsque tu détectes ou diagnostiques un problème d'API, de configuration ou d'exécution qui provient spécifiquement du code "backend" sur lequel tu travailles ou communiques :
+1. Tu dois systématiquement créer un fichier markdown en tant qu'Artifact (très détaillé, structuré et complet).
+2. Ce rapport doit impérativement contenir les sections suivantes :
+   - Description précise du problème et des symptômes observés.
+   - Analyse technique.
+   - Conséquences sur l'application frontend.
+   - Actions requises ou solutions techniques précises pour guider les développeurs backend.
+3. Exécute cette règle systématiquement sans attendre d'approbation de l'utilisateur quand un dysfonctionnement backend avéré est détecté ou de façon globale à la création d'issue d'intégration.
+4. **Balayage Frontend ("Frontend log sweep")** : Durant l'analyse de logs sur le frontend, identifie et corrige automatiquement les éventuelles erreurs frontend à faible risque signalées dans les logs de manière adjacente.
+
+## 1. Principes Fondamentaux et Contexte (Issu de GitHub Copilot)
+L'application Monitored App est une application Flutter de surveillance, centrée sur le contrôle parental.
+- **Frontend** : Flutter 3.x, Dart 
+- **State Management** : Riverpod
+- **Injection de dépendance** : GetIt (`lib/app/locator.dart`)
+- **Modèles de données** : Freezed
+- **Obligations fondamentales** : 
+  - Toujours se fier aux documents dans le dossier `docs/` en particulier le plan de dev (`docs/monitored-app-development-plan.md`) et la spec d'API (`docs/API-Endpoints-Application-Surveillee.md`).
+  - Aucun code de remplacement ("placeholder"), code de production complet uniquement.
+  - S'assurer que le code est cohérent avec le style environnant, compiler le code (zero warning) avec `flutter analyze` et ne rien modifier qui pourrait casser des fonctionnalités existantes.
+
+## 2. Règles Techniques Critiques (À NE JAMAIS VIOLER)
+
+### Règle 1: Utiliser l'Injection de Dépendance avec GetIt
+Il est strictement interdit d'instancier les services (`AuthService`, `StorageService`, etc.) directement. Utilise toujours le lanceur central : `locator<MonService>()`. 
+
+### Règle 2: State Management via Riverpod
+Tout l'état métier de l'interface doit être piloté par `Riverpod` (`ConsumerWidget`). Il est interdit d'utiliser un `StatefulWidget` pour manipuler de la logique d'état asynchrone ou complexe.
+
+### Règle 3: Architecture "Background-First"
+Toute la logique de collecte (`DataCollectorService`, etc.) doit s'exécuter dans la couche des services d'arrière-plan (`lib/core/services/`) et non depuis l'interface utilisateur. La surveillance doit continuer à tourner même lorsque les fenêtres de l'interface sont fermées.
+
+### Règle 4: Utilisation des Bridges Natifs
+Flutter ne peut pas nativement requêter les SMS ou Journaux d'appel d'Android. Passer toujours par les `MethodChannel` (`android/app/src/main/kotlin/...`) pour les fonctionnalités système natives.
+
+### Règle 5: Traduction & i18n
+L'interface doit gérer l'anglais et le français (qui est la langue principale). Ne code aucune chaîne en dur ("Hardcoded"). Utilise `AppLocalizations.of(context)!.maChaine` en modifiant `app_en.arb` et `app_fr.arb`.
+
+### Règle 6: Gestion des erreurs gracieuse et cryptée
+Encadre les actions à risque (API, natif) de Try-Catch, expose un message générique/amicable à l'utilisateur, et consigne la trace ou le détail des requêtes de manière distante, par le biais de Firebase Crashlytics. Interdiction d'exposer des détails d'erreur sensibles sur l'écran final de l'usager.
+
+## 3. Architecture Stratifiée de Monitored App
+Ne mélange jamais les responsabilités. L'application est divisée en 4 couches :
+1. **Couche UI** (`lib/features/`) gérée par Riverpod.
+2. **Couche Service** (`lib/core/services/`) contenant le pilotage général des actions (BackgroundService, AuthService, etc.), déclarée globalement via GetIt.
+3. **Couche Collecteurs** (`lib/core/collectors/`) chargée stricto sensu de réunir les informations (SMS, Appels) et héritant de conventions de format.
+4. **Couche Native** (`android/...`, `ios/...`) exécutant les requêtes sous-jacentes du noyau d'OS de la cible physique.
+
+## 4. Lien des Référentiels (Inclusion GitHub Copilot / Cursor / Codex)
+Pour garantir une complétion et une cohésion parfaite avec l'ensemble des autres agents de ce projet (GitHub Copilot, Cursor, etc.), ce fichier agit de pair avec, **et intègre explicitement les comportements définis par** :
+- Le fichier principal d'instruction : `.github/copilot-instructions.md`
+- La checklist détaillée d'implémentation : `.github/copilot-rules/implementation-checklist.md`
+- L'architecture de détail : `.github/copilot-rules/architecture-detailed.md`
+- Le guide de style code : `.github/copilot-rules/code-style-detailed.md`
+- Le format universel de signalisation d'issues : `.github/copilot-rules/integration-issue-documentation.md`
+- Les règles Codex étendues : `.github/instructions/codex-rules.instructions.md`
+
+Toutes ces règles constituent un périmètre étendu que je dois virtuellement et systématiquement consulter ou appliquer en corrélation avec ce présent fichier lors de mes réflexions.

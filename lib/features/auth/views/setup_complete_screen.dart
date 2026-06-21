@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:monitored_app/app/routes.dart';
 import 'package:monitored_app/app/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 import 'package:monitored_app/core/config/app_config.dart';
 import 'package:monitored_app/core/services/background_service.dart';
 import 'package:monitored_app/core/services/battery_optimization_service.dart';
@@ -118,7 +118,7 @@ class _SetupCompleteScreenState extends State<SetupCompleteScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(

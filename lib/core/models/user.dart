@@ -21,15 +21,22 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Handle fields that may not be present in pairing response
+    // The pairing endpoint returns: first_name, last_name, user_type but not
+    // is_email_verified and created_at
     return User(
-      id: json['id'],
-      email: json['email'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
+      id: json['id'] ?? '',
+      email: json['email'] ?? '',
+      firstName: json['first_name'] ?? '',
+      lastName: json['last_name'] ?? '',
       phoneNumber: json['phone_number'],
-      userType: json['user_type'],
-      isEmailVerified: json['is_email_verified'],
-      createdAt: DateTime.parse(json['created_at']),
+      userType: json['user_type'] ?? 'UNKNOWN',
+      // Default to true for pairing since the user has already authenticated
+      isEmailVerified: json['is_email_verified'] ?? true,
+      // Use current time or parsed time - default to now if not provided
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
     );
   }
 

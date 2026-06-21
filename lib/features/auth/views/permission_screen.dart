@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:monitored_app/app/routes.dart';
 import 'package:monitored_app/app/theme.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:monitored_app/core/services/permission_manager_service.dart';
+import 'package:monitored_app/generated/l10n/app_localizations.dart';
 
 class PermissionScreen extends StatefulWidget {
   const PermissionScreen({super.key});
@@ -12,58 +12,29 @@ class PermissionScreen extends StatefulWidget {
 }
 
 class _PermissionScreenState extends State<PermissionScreen> {
-  int _currentStep = 0;
+  int _currentCategoryIndex = 0;
+  int _currentPermissionIndex = 0;
+  bool _isLoading = false;
+  bool _showHelp = false;
   
-  final List<Map<String, dynamic>> _permissions = [
-    {
-      'type': Permission.location,
-      'title': 'locationPermission',
-      'description': 'locationPermissionDescription',
-      'icon': Icons.location_on,
-      'status': PermissionStatus.denied,
-      'required': true
-    },
-    {
-      'type': Permission.sms,
-      'title': 'smsPermission',
-      'description': 'smsPermissionDescription',
-      'icon': Icons.sms,
-      'status': PermissionStatus.denied,
-      'required': true
-    },
-    {
-      'type': Permission.phone,
-      'title': 'phonePermission',
-      'description': 'phonePermissionDescription',
-      'icon': Icons.call,
-      'status': PermissionStatus.denied,
-      'required': true
-    },
-    {
-      'type': Permission.storage,
-      'title': 'storagePermission',
-      'description': 'storagePermissionDescription',
-      'icon': Icons.storage,
-      'status': PermissionStatus.denied,
-      'required': true
-    },
-    {
-      'type': Permission.camera,
-      'title': 'cameraPermission',
-      'description': 'cameraPermissionDescription',
-      'icon': Icons.camera_alt,
-      'status': PermissionStatus.denied,
-      'required': false
-    },
-    {
-      'type': Permission.microphone,
-      'title': 'microphonePermission',
-      'description': 'microphonePermissionDescription',
-      'icon': Icons.mic,
-      'status': PermissionStatus.denied,
-      'required': false
-    },
+  final List<PermissionCategory> _categories = [
+    PermissionCategory.essential,
+    PermissionCategory.monitoring,
+    PermissionCategory.media,
+    PermissionCategory.system,
   ];
+  
+  List<PermissionInfo> get _currentCategoryPermissions {
+    return PermissionManagerService.getPermissionsByCategory(_categories[_currentCategoryIndex]);
+  }
+  
+  PermissionInfo? get _currentPermission {
+    final categoryPermissions = _currentCategoryPermissions;
+    if (_currentPermissionIndex < categoryPermissions.length) {
+      return categoryPermissions[_currentPermissionIndex];
+    }
+    return null;
+  }
   
   @override
   void initState() {
@@ -72,210 +43,477 @@ class _PermissionScreenState extends State<PermissionScreen> {
   }
   
   Future<void> _checkPermissions() async {
-    for (int i = 0; i < _permissions.length; i++) {
-      final status = await _permissions[i]['type'].status;
-      setState(() {
-        _permissions[i]['status'] = status;
-      });
-    }
-  }
-  
-  Future<void> _requestPermission(int index) async {
-    final permission = _permissions[index]['type'];
-    final status = await permission.request();
+    setState(() {
+      _isLoading = true;
+    });
+    
+    await PermissionManagerService.checkAllPermissions();
     
     setState(() {
-      _permissions[index]['status'] = status;
+      _isLoading = false;
     });
   }
   
-  bool _canProceed() {
-    // Check if all required permissions are granted
-    for (final permission in _permissions) {
-      if (permission['required'] && permission['status'] != PermissionStatus.granted) {
-        return false;
-      }
+  Future<void> _requestCurrentPermission() async {
+    final permission = _currentPermission;
+    if (permission == null) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    final granted = await PermissionManagerService.requestPermission(permission);
+    
+    setState(() {
+      _isLoading = false;
+    });
+    
+    if (granted || permission.status == AppPermissionStatus.granted) {
+      _goToNextPermission();
+    } else if (permission.status == AppPermissionStatus.permanentlyDenied) {
+      _showPermanentlyDeniedDialog(permission);
     }
-    return true;
   }
   
-  void _goToNextStep() {
-    if (_currentStep < _permissions.length - 1) {
+  bool _canProceed() {
+    return PermissionManagerService.areRequiredPermissionsGranted();
+  }
+  
+  bool _canSkipCurrentPermission() {
+    final permission = _currentPermission;
+    return permission != null && !permission.isRequired;
+  }
+  
+  void _goToNextPermission() {
+    final categoryPermissions = _currentCategoryPermissions;
+    
+    if (_currentPermissionIndex < categoryPermissions.length - 1) {
       setState(() {
-        _currentStep++;
+        _currentPermissionIndex++;
       });
     } else {
-      // All permissions have been requested, move to next screen
-      Navigator.pushReplacementNamed(context, AppRoutes.setupComplete);
+      _goToNextCategory();
     }
   }
   
-  void _goToPreviousStep() {
-    if (_currentStep > 0) {
+  void _goToNextCategory() {
+    if (_currentCategoryIndex < _categories.length - 1) {
       setState(() {
-        _currentStep--;
+        _currentCategoryIndex++;
+        _currentPermissionIndex = 0;
+      });
+    } else {
+      _completePermissionSetup();
+    }
+  }
+  
+  void _goToPreviousPermission() {
+    if (_currentPermissionIndex > 0) {
+      setState(() {
+        _currentPermissionIndex--;
+      });
+    } else {
+      _goToPreviousCategory();
+    }
+  }
+  
+  void _goToPreviousCategory() {
+    if (_currentCategoryIndex > 0) {
+      setState(() {
+        _currentCategoryIndex--;
+        final prevCategoryPermissions = PermissionManagerService.getPermissionsByCategory(_categories[_currentCategoryIndex]);
+        _currentPermissionIndex = prevCategoryPermissions.length - 1;
       });
     }
+  }
+  
+  void _completePermissionSetup() {
+    if (_canProceed()) {
+      Navigator.pushReplacementNamed(context, AppRoutes.setupComplete);
+    } else {
+      _showIncompletePermissionsDialog();
+    }
+  }
+  
+  void _showPermanentlyDeniedDialog(PermissionInfo permission) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.permissionDenied),
+        content: Text(AppLocalizations.of(context)!.permissionPermanentlyDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.continueText),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              PermissionManagerService.openAppSettings();
+            },
+            child: Text(AppLocalizations.of(context)!.openSettings),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _showIncompletePermissionsDialog() {
+    final deniedPermissions = PermissionManagerService.getDeniedRequiredPermissions();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.incompleteSetup),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(AppLocalizations.of(context)!.requiredPermissionsMissing),
+            const SizedBox(height: 16),
+            ...deniedPermissions.map((p) => ListTile(
+              leading: Icon(Icons.error, color: AppTheme.alertColor),
+              title: Text(AppLocalizations.of(context)!.permissionTitle(p.titleKey)),
+              dense: true,
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.reviewPermissions),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.pushReplacementNamed(context, AppRoutes.setupComplete);
+            },
+            child: Text(AppLocalizations.of(context)!.continueAnyway),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final permission = _currentPermission;
+    
+    if (_isLoading || permission == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.requiredPermissions),
+          automaticallyImplyLeading: false,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    final categoryName = _getCategoryName(_categories[_currentCategoryIndex], l10n);
+    final totalPermissions = PermissionManagerService.allPermissions.length;
+    final currentPosition = _getCurrentPosition();
     
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.requiredPermissions),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: Icon(_showHelp ? Icons.help : Icons.help_outline),
+            onPressed: () => setState(() => _showHelp = !_showHelp),
+          ),
+        ],
       ),
       body: Column(
         children: [
           // Progress indicator
-          LinearProgressIndicator(
-            value: (_currentStep + 1) / _permissions.length,
-            backgroundColor: Colors.grey[300],
-            color: AppTheme.primaryColor,
-          ),
-          
-          // Stepper content
-          Expanded(
-            child: Stepper(
-              type: StepperType.horizontal,
-              currentStep: _currentStep,
-              onStepContinue: _goToNextStep,
-              onStepCancel: _goToPreviousStep,
-              controlsBuilder: (context, details) {
-                final isCurrentPermissionGranted = 
-                    _permissions[_currentStep]['status'] == PermissionStatus.granted;
-                
-                return Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: isCurrentPermissionGranted 
-                            ? details.onStepContinue 
-                            : () => _requestPermission(_currentStep),
-                        child: Text(
-                          isCurrentPermissionGranted
-                              ? l10n.continueText
-                              : l10n.grantPermission
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      if (_currentStep > 0)
-                        TextButton(
-                          onPressed: details.onStepCancel,
-                          child: Text(l10n.back),
-                        ),
-                    ],
-                  ),
-                );
-              },
-              steps: _permissions.map((permission) {
-                final title = l10n.permissionTitle(permission['title']);
-                final description = l10n.permissionDescription(permission['description']);
-                final isGranted = permission['status'] == PermissionStatus.granted;
-                
-                return Step(
-                  title: Text(title),
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Permission icon
-                      Center(
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: isGranted 
-                                ? AppTheme.secondaryColor.withOpacity(0.1)
-                                : AppTheme.primaryColor.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            permission['icon'],
-                            size: 40,
-                            color: isGranted 
-                                ? AppTheme.secondaryColor
-                                : AppTheme.primaryColor,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // Permission description
-                      Text(
-                        description,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      
-                      // Required tag
-                      if (permission['required'])
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.alertColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            l10n.requiredPermission,
-                            style: const TextStyle(
-                              color: AppTheme.alertColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      
-                      // Permission status
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Icon(
-                            isGranted ? Icons.check_circle : Icons.info_outline,
-                            color: isGranted ? AppTheme.secondaryColor : Colors.grey,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isGranted 
-                                ? l10n.permissionGranted
-                                : l10n.permissionRequired,
-                            style: TextStyle(
-                              color: isGranted ? AppTheme.secondaryColor : Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  isActive: _currentStep == _permissions.indexOf(permission),
-                  state: permission['status'] == PermissionStatus.granted
-                      ? StepState.complete
-                      : StepState.indexed,
-                );
-              }).toList(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              children: [
+                LinearProgressIndicator(
+                  value: currentPosition / totalPermissions,
+                  backgroundColor: Colors.grey[300],
+                  color: AppTheme.primaryColor,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '$categoryName (${_currentPermissionIndex + 1}/${_currentCategoryPermissions.length})',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      '${currentPosition}/${totalPermissions}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           
-          // Bottom navigation bar with continue button
+          // Help section
+          if (_showHelp)
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.info, color: AppTheme.primaryColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.whyDoWeNeedThis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.permissionExplanation(permission.explanationKey),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          
+          // Main content
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Permission icon
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: permission.status == AppPermissionStatus.granted
+                          ? AppTheme.secondaryColor.withValues(alpha: 0.1)
+                          : AppTheme.primaryColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _getIconData(permission.icon ?? 'help'),
+                      size: 60,
+                      color: permission.status == AppPermissionStatus.granted
+                          ? AppTheme.secondaryColor
+                          : AppTheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  
+                  // Permission title
+                  Text(
+                    l10n.permissionTitle(permission.titleKey),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Permission description
+                  Text(
+                    l10n.permissionDescription(permission.descriptionKey),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Required/Optional badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: permission.isRequired
+                          ? AppTheme.alertColor.withValues(alpha: 0.1)
+                          : Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      permission.isRequired
+                          ? l10n.requiredPermission
+                          : l10n.optionalPermission,
+                      style: TextStyle(
+                        color: permission.isRequired
+                            ? AppTheme.alertColor
+                            : Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Permission status
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        permission.status == AppPermissionStatus.granted
+                            ? Icons.check_circle
+                            : Icons.warning,
+                        color: permission.status == AppPermissionStatus.granted
+                            ? AppTheme.secondaryColor
+                            : AppTheme.alertColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        permission.status == AppPermissionStatus.granted
+                            ? l10n.permissionGranted
+                            : l10n.permissionRequired,
+                        style: TextStyle(
+                          color: permission.status == AppPermissionStatus.granted
+                              ? AppTheme.secondaryColor
+                              : AppTheme.alertColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Bottom navigation
           Container(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _canProceed()
-                        ? () => Navigator.pushReplacementNamed(context, AppRoutes.setupComplete)
-                        : null,
-                    child: Text(l10n.continueToSetup),
-                  ),
+                // Action buttons
+                Row(
+                  children: [
+                    // Back button
+                    if (currentPosition > 1)
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _goToPreviousPermission,
+                          child: Text(l10n.back),
+                        ),
+                      ),
+                    
+                    if (currentPosition > 1) const SizedBox(width: 16),
+                    
+                    // Main action button
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : (permission.status == AppPermissionStatus.granted
+                                ? _goToNextPermission
+                                : _requestCurrentPermission),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                permission.status == AppPermissionStatus.granted
+                                    ? l10n.continueText
+                                    : l10n.grantPermission,
+                              ),
+                      ),
+                    ),
+                    
+                    // Skip button for optional permissions
+                    if (_canSkipCurrentPermission())
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _goToNextPermission,
+                          child: Text(l10n.skip),
+                        ),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 16),
+                
+                // Complete setup button (shown when all required permissions are granted)
+                if (_canProceed())
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.setupComplete),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.secondaryColor,
+                      ),
+                      child: Text(l10n.completeSetup),
+                    ),
+                  ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+  
+  String _getCategoryName(PermissionCategory category, AppLocalizations l10n) {
+    switch (category) {
+      case PermissionCategory.essential:
+        return l10n.essentialPermissions;
+      case PermissionCategory.monitoring:
+        return l10n.monitoringPermissions;
+      case PermissionCategory.media:
+        return l10n.mediaPermissions;
+      case PermissionCategory.system:
+        return l10n.systemPermissions;
+    }
+  }
+  
+  int _getCurrentPosition() {
+    int position = 0;
+    for (int i = 0; i < _currentCategoryIndex; i++) {
+      position += PermissionManagerService.getPermissionsByCategory(_categories[i]).length;
+    }
+    return position + _currentPermissionIndex + 1;
+  }
+  
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'location_on':
+        return Icons.location_on;
+      case 'location_history':
+        return Icons.location_history;
+      case 'sms':
+        return Icons.sms;
+      case 'call':
+        return Icons.call;
+      case 'assessment':
+        return Icons.assessment;
+      case 'accessibility':
+        return Icons.accessibility;
+      case 'camera_alt':
+        return Icons.camera_alt;
+      case 'mic':
+        return Icons.mic;
+      case 'storage':
+        return Icons.storage;
+      case 'admin_panel_settings':
+        return Icons.admin_panel_settings;
+      case 'battery_saver':
+        return Icons.battery_saver;
+      case 'notifications':
+        return Icons.notifications;
+      default:
+        return Icons.help;
+    }
   }
 }

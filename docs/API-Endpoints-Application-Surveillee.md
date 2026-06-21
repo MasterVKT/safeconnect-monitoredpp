@@ -303,12 +303,17 @@ Authorization: Bearer <access_token>
       "file_size": 2048576,
       "width": 4000,
       "height": 3000,
+      "duration": null,
       "created_at": "2024-01-01T12:00:00Z",
       "modified_at": "2024-01-01T12:00:00Z"
     }
   ]
 }
 ```
+
+Pour les médias audio et vidéo, `duration` est exprimée en **millisecondes**,
+quelle que soit la source du média (MediaStore Android ou capture distante).
+Pour les photos et captures d'écran, la valeur est `null`.
 
 **Réponse 200** :
 ```json
@@ -330,6 +335,11 @@ Authorization: Bearer <access_token>
 ---
 
 ### 5. POST /data/collect/bulk/
+**Contraintes de taille** :
+- Maximum 200 items au total par requete bulk
+- Maximum 100 items pour un meme `data_type` dans une requete bulk
+- Le client monitored_app doit fractionner les lots localement et envoyer les requetes bulk sequentiellement ou avec une concurrence tres limitee
+
 **Description** : Envoyer des données de plusieurs types en une seule requête
 
 **Utilisation** : Optimisation pour envoyer des données groupées et réduire le nombre de requêtes
@@ -385,6 +395,13 @@ Authorization: Bearer <access_token>
   ]
 }
 ```
+
+**Gestion d'erreurs** :
+- **400** : Parametres manquants ou format invalide
+- **403** : Pas d'autorisation pour cet appareil
+- **413** avec `code: "payload_too_large"` : plus de 200 items dans la requete bulk
+- **413** avec `code: "batch_too_large"` : plus de 100 items pour un meme `data_type`
+- **422** : Donnees invalides dans un ou plusieurs items
 
 ---
 
@@ -469,7 +486,10 @@ Authorization: Bearer <access_token>
     "camera": "granted", 
     "microphone": "granted",
     "contacts": "granted",
-    "storage": "granted"
+    "storage": "granted",
+    "media_images": "granted|denied|partial",
+    "media_video": "granted|denied|partial",
+    "media_audio": "granted|denied"
   }
 }
 ```
@@ -753,4 +773,4 @@ for attempt in range(1, max_retries + 1):
 
 ---
 
-*Ce document constitue la spécification complète des endpoints API destinés à l'application surveillée. Il doit être utilisé comme référence pour l'implémentation côté client mobile.* 
+*Ce document constitue la spécification complète des endpoints API destinés à l'application surveillée. Il doit être utilisé comme référence pour l'implémentation côté client mobile.*

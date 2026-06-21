@@ -1,0 +1,10 @@
+[mcp_servers.code-review-graph]
+enabled = true
+command = 'h:\Projects\XP SafeConnect\flutter_apps\monitored_app\.venv\Scripts\python.exe'
+args = ["-m", "code_review_graph", "serve"]
+cwd = 'h:\Projects\XP SafeConnect\flutter_apps\monitored_app'
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.code-review-graph.env]
+VIRTUAL_ENV = 'h:\Projects\XP SafeConnect\flutter_apps\monitored_app\.venv'
